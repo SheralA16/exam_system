@@ -333,6 +333,9 @@ def student_course_exams(request, course_id):
 
 @login_required
 def student_take_exam(request, exam_id):
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+
     exam = get_object_or_404(Exam, pk=exam_id, is_active=True)
 
     # Verificar inscripción
@@ -346,9 +349,26 @@ def student_take_exam(request, exam_id):
     # Obtener todas las preguntas y respuestas
     questions = exam.questions.all().prefetch_related('answers').order_by('order')
 
+    # Búsqueda
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        # Buscar por ID o por texto de pregunta
+        questions = questions.filter(
+            Q(id__icontains=search_query) |
+            Q(question_text__icontains=search_query)
+        )
+
+    # Paginación - 20 preguntas por página
+    paginator = Paginator(questions, 20)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     context = {
         'exam': exam,
-        'questions': questions,
+        'questions': page_obj,
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'total_questions': questions.count(),
     }
     return render(request, 'exams/student_view_exam.html', context)
 
