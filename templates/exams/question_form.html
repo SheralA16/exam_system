@@ -46,10 +46,18 @@
         <div class="form-group">
             <label for="image">Imagen (opcional)</label>
             {% if question.image %}
-                <div class="current-image">
-                    <img src="{{ question.image.url }}" alt="Imagen actual">
-                    <p>Imagen actual - Sube una nueva para reemplazarla</p>
+                <div class="current-image" id="currentImageContainer">
+                    <img src="{{ question.image.url }}" alt="Imagen actual" id="currentImagePreview">
+                    <p>Imagen actual</p>
+                    <button type="button" class="btn-delete-image" onclick="confirmDeleteImage()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        Eliminar Imagen
+                    </button>
                 </div>
+                <input type="hidden" name="delete_image" id="deleteImageInput" value="0">
             {% endif %}
             <input
                 type="file"
@@ -164,9 +172,34 @@
     }
 
     .current-image p {
-        margin: 0;
+        margin: 0 0 10px 0;
         color: #7f8c8d;
         font-size: 13px;
+    }
+
+    .btn-delete-image {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+
+    .btn-delete-image:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+    }
+
+    .btn-delete-image svg {
+        flex-shrink: 0;
     }
 
     .form-actions {
@@ -283,4 +316,28 @@
         }
     }
 </style>
+
+<script>
+    function confirmDeleteImage() {
+        if (confirm('¿Estás seguro de que quieres eliminar esta imagen?')) {
+            // Marcar para eliminación
+            document.getElementById('deleteImageInput').value = '1';
+
+            // Ocultar visualmente la imagen
+            const container = document.getElementById('currentImageContainer');
+            container.style.opacity = '0.5';
+            container.style.pointerEvents = 'none';
+
+            // Cambiar el texto
+            const paragraph = container.querySelector('p');
+            paragraph.textContent = 'La imagen será eliminada al guardar';
+            paragraph.style.color = '#e74c3c';
+            paragraph.style.fontWeight = 'bold';
+
+            // Ocultar el botón de eliminar
+            const deleteBtn = container.querySelector('.btn-delete-image');
+            deleteBtn.style.display = 'none';
+        }
+    }
+</script>
 {% endblock %}

@@ -284,8 +284,14 @@ def question_edit(request, pk):
 
     if request.method == 'POST':
         question.question_text = request.POST.get('question_text')
-        if request.FILES.get('image'):
+
+        # Verificar si se quiere eliminar la imagen
+        delete_image = request.POST.get('delete_image') == '1'
+        if delete_image:
+            question.image = None
+        elif request.FILES.get('image'):
             question.image = request.FILES.get('image')
+
         question.explanation = request.POST.get('explanation')
         question.save()
 

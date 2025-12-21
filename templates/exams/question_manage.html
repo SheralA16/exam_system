@@ -93,6 +93,12 @@
                                             {% endif %}
                                         </td>
                                         <td class="actions-cell">
+                                            <a href="{% url 'exams:question_create' exam.id %}" class="btn-icon btn-add" title="Agregar nueva pregunta">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                                </svg>
+                                            </a>
                                             <a href="{% url 'exams:question_edit' question.id %}" class="btn-icon btn-edit" title="Editar">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -467,6 +473,16 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
+    }
+
+    .btn-add {
+        color: #27ae60;
+        background: #e8f8f0;
+    }
+
+    .btn-add:hover {
+        background: #27ae60;
+        color: white;
     }
 
     .btn-edit {
