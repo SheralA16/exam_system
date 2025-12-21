@@ -26,6 +26,57 @@
         <h1>Mis Cursos</h1>
     </div>
 
+    <!-- Vista general de curso -->
+    <div class="course-overview">
+        <div class="overview-container">
+            <h2 class="overview-title">Vista general de curso</h2>
+            <div class="controls-bar">
+                <!-- Buscador -->
+                <div class="search-box">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Buscar" oninput="filterCourses()">
+                    <button class="clear-search" id="clearSearch" onclick="clearSearch()" style="display: none;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Ordenar -->
+                <div class="sort-box">
+                    <select id="sortSelect" class="sort-select" onchange="sortCourses()">
+                        <option value="name-asc">Ordenar por nombre del curso</option>
+                        <option value="name-desc">Nombre (Z-A)</option>
+                    </select>
+                </div>
+
+                <!-- Toggle Vista -->
+                <div class="view-toggle-container">
+                    <button class="view-toggle-btn" id="viewToggleBtn" onclick="toggleViewDropdown()">
+                        <span id="viewToggleText">Lista</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="view-dropdown" id="viewDropdown" style="display: none;">
+                        <div class="view-option" onclick="setView('card')">
+                            <span>Tarjeta</span>
+                            <svg class="check-icon" id="checkCard" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                        <div class="view-option" onclick="setView('list')">
+                            <span>Lista</span>
+                            <svg class="check-icon" id="checkList" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="dashboard-content">
         {% if messages %}
         {% for message in messages %}
@@ -35,9 +86,9 @@
         {% endfor %}
         {% endif %}
 
-        <div class="courses-grid">
+        <div class="courses-grid" id="coursesContainer">
             {% for enrollment in enrollments %}
-            <div class="course-card">
+            <div class="course-card" data-name="{{ enrollment.course.name|lower }}">
                 {% if enrollment.course.image %}
                 <img src="{{ enrollment.course.image.url }}" alt="{{ enrollment.course.name }}" class="course-image">
                 {% else %}
@@ -46,8 +97,8 @@
                 </div>
                 {% endif %}
                 <div class="course-content">
-                    <h3>{{ enrollment.course.name }}</h3>
-                    <p>{{ enrollment.course.description|truncatewords:15|default:"Sin descripción" }}</p>
+                    <h3 class="course-name">{{ enrollment.course.name }}</h3>
+                    <p class="course-description">{{ enrollment.course.description|truncatewords:15|default:"Sin descripción" }}</p>
                     <a href="{% url 'exams:student_course_exams' enrollment.course.id %}" class="btn-card">Ir al
                         Curso</a>
                 </div>
@@ -132,6 +183,205 @@
         font-weight: 600;
         max-width: 1200px;
         margin: 0 auto;
+    }
+
+    /* Vista general de curso */
+    .course-overview {
+        background: white;
+        padding: 20px 40px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .overview-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .overview-title {
+        color: #2c3e50;
+        font-size: 18px;
+        font-weight: 500;
+        margin: 0 0 15px 0;
+    }
+
+    .controls-bar {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    /* Buscador */
+    .search-box {
+        position: relative;
+        flex: 0 0 280px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 10px 35px 10px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #7ed321;
+        transition: border-color 0.3s;
+    }
+
+    .search-input::placeholder {
+        color: #7ed321;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #7ed321;
+    }
+
+    .clear-search {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        color: #95a5a6;
+    }
+
+    .clear-search:hover {
+        color: #e74c3c;
+    }
+
+    /* Ordenar */
+    .sort-box {
+        flex: 0 0 300px;
+    }
+
+    .sort-select {
+        width: 100%;
+        padding: 10px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        background: white;
+        cursor: pointer;
+        transition: border-color 0.3s;
+    }
+
+    .sort-select:focus {
+        outline: none;
+        border-color: #7ed321;
+    }
+
+    /* Toggle Vista */
+    .view-toggle-container {
+        position: relative;
+    }
+
+    .view-toggle-btn {
+        background: #7ed321;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+
+    .view-toggle-btn:hover {
+        background: #6bc21b;
+    }
+
+    .view-dropdown {
+        position: absolute;
+        top: calc(100% + 5px);
+        right: 0;
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        min-width: 150px;
+        z-index: 100;
+    }
+
+    .view-option {
+        padding: 12px 15px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.2s;
+    }
+
+    .view-option:hover {
+        background: #f8f9fa;
+    }
+
+    .view-option:first-child {
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .check-icon {
+        color: #7ed321;
+    }
+
+    /* Vista de Lista */
+    .courses-grid.list-view {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .courses-grid.list-view .course-card {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 0;
+    }
+
+    .courses-grid.list-view .course-image,
+    .courses-grid.list-view .course-image-placeholder {
+        width: 250px;
+        height: 150px;
+        flex-shrink: 0;
+        position: relative;
+    }
+
+    .courses-grid.list-view .course-image-placeholder span {
+        font-size: 48px;
+    }
+
+    .courses-grid.list-view .course-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .courses-grid.list-view .course-content h3 {
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+
+    .courses-grid.list-view .course-content p {
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+
+    .courses-grid.list-view .btn-card {
+        display: none;
+    }
+
+    .courses-grid.list-view .course-card {
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
     }
 
     .dashboard-content {
@@ -271,6 +521,20 @@
             font-size: 22px;
         }
 
+        .course-overview {
+            padding: 15px 20px;
+        }
+
+        .controls-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-box,
+        .sort-box {
+            flex: 1 1 auto;
+        }
+
         .dashboard-content {
             padding: 20px;
         }
@@ -287,6 +551,12 @@
 
         .course-image-placeholder span {
             font-size: 48px;
+        }
+
+        .courses-grid.list-view .course-image,
+        .courses-grid.list-view .course-image-placeholder {
+            width: 150px;
+            height: 120px;
         }
     }
 
@@ -320,4 +590,113 @@
         }
     }
 </style>
+
+<script>
+    let currentView = 'list'; // Por defecto en vista lista
+
+    // Cerrar dropdown al hacer click fuera
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('viewDropdown');
+        const toggleBtn = document.getElementById('viewToggleBtn');
+
+        if (!toggleBtn.contains(event.target) && !dropdown.contains(event.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    // Toggle dropdown
+    function toggleViewDropdown() {
+        const dropdown = document.getElementById('viewDropdown');
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // Cambiar vista
+    function setView(view) {
+        const container = document.getElementById('coursesContainer');
+        const checkCard = document.getElementById('checkCard');
+        const checkList = document.getElementById('checkList');
+        const viewText = document.getElementById('viewToggleText');
+        const dropdown = document.getElementById('viewDropdown');
+
+        if (view === 'card') {
+            container.classList.remove('list-view');
+            checkCard.style.display = 'block';
+            checkList.style.display = 'none';
+            viewText.textContent = 'Tarjeta';
+            currentView = 'card';
+        } else {
+            container.classList.add('list-view');
+            checkCard.style.display = 'none';
+            checkList.style.display = 'block';
+            viewText.textContent = 'Lista';
+            currentView = 'list';
+
+            // Hacer click en toda la card para ir al curso en vista lista
+            document.querySelectorAll('.course-card').forEach(card => {
+                card.style.cursor = 'pointer';
+                card.onclick = function() {
+                    const link = this.querySelector('.btn-card');
+                    if (link) {
+                        window.location.href = link.href;
+                    }
+                };
+            });
+        }
+
+        dropdown.style.display = 'none';
+    }
+
+    // Filtrar cursos
+    function filterCourses() {
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        const filter = searchInput.value.toLowerCase();
+        const cards = document.querySelectorAll('.course-card');
+
+        // Mostrar/ocultar botón de limpiar
+        clearBtn.style.display = filter ? 'flex' : 'none';
+
+        cards.forEach(card => {
+            const name = card.getAttribute('data-name');
+            if (name && name.includes(filter)) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    // Limpiar búsqueda
+    function clearSearch() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('clearSearch').style.display = 'none';
+        filterCourses();
+    }
+
+    // Ordenar cursos
+    function sortCourses() {
+        const container = document.getElementById('coursesContainer');
+        const cards = Array.from(container.querySelectorAll('.course-card'));
+        const sortValue = document.getElementById('sortSelect').value;
+
+        cards.sort((a, b) => {
+            const nameA = a.getAttribute('data-name');
+            const nameB = b.getAttribute('data-name');
+
+            if (sortValue === 'name-asc') {
+                return nameA.localeCompare(nameB);
+            } else {
+                return nameB.localeCompare(nameA);
+            }
+        });
+
+        // Reordenar
+        cards.forEach(card => container.appendChild(card));
+    }
+
+    // Inicializar en vista lista
+    window.addEventListener('DOMContentLoaded', function() {
+        setView('list');
+    });
+</script>
 {% endblock %}
