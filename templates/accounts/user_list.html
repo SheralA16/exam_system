@@ -48,6 +48,7 @@
                         <th>Fecha de Registro</th>
                         <th>Último Acceso</th>
                         <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -86,10 +87,39 @@
                                     </span>
                                 {% endif %}
                             </td>
+                            <td>
+                                {% if user_item.id != user.id %}
+                                    {% if user_item.is_active %}
+                                        <form method="post" action="{% url 'accounts:toggle_user_status' user_item.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-action btn-deactivate" title="Desactivar usuario">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <circle cx="12" cy="12" r="10"></circle>
+                                                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                                                </svg>
+                                                Desactivar
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <form method="post" action="{% url 'accounts:toggle_user_status' user_item.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-action btn-activate" title="Activar usuario">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                                </svg>
+                                                Activar
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                {% else %}
+                                    <span style="color: #95a5a6; font-size: 12px;">-</span>
+                                {% endif %}
+                            </td>
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="7" style="text-align: center;">No hay usuarios registrados.</td>
+                            <td colspan="8" style="text-align: center;">No hay usuarios registrados.</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -288,6 +318,39 @@
         50% {
             opacity: 0.5;
         }
+    }
+
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-activate {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .btn-activate:hover {
+        background-color: #218838;
+        transform: translateY(-2px);
+    }
+
+    .btn-deactivate {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-deactivate:hover {
+        background-color: #c82333;
+        transform: translateY(-2px);
     }
 
     .alert {

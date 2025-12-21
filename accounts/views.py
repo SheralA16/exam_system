@@ -167,3 +167,27 @@ def create_user(request):
             return render(request, 'accounts/create_user.html')
 
     return render(request, 'accounts/create_user.html')
+
+
+@login_required
+def toggle_user_status(request, user_id):
+    if not request.user.is_admin():
+        messages.error(request, 'No tienes permisos para realizar esta acción.')
+        return redirect('accounts:dashboard')
+
+    if request.method == 'POST':
+        user_to_toggle = get_object_or_404(User, pk=user_id)
+
+        # Evitar que el admin se desactive a sí mismo
+        if user_to_toggle.id == request.user.id:
+            messages.error(request, 'No puedes cambiar tu propio estado.')
+            return redirect('accounts:user_list')
+
+        # Cambiar el estado
+        user_to_toggle.is_active = not user_to_toggle.is_active
+        user_to_toggle.save()
+
+        status_text = 'activado' if user_to_toggle.is_active else 'desactivado'
+        messages.success(request, f'Usuario "{user_to_toggle.username}" {status_text} exitosamente.')
+
+    return redirect('accounts:user_list')
