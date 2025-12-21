@@ -108,7 +108,7 @@
                             {% for question in questions %}
                                 <tr>
                                     <td>
-                                        <div class="cell-content"><strong>{{ page_obj.start_index|add:forloop.counter0 }}.</strong> {{ question.question_text }}</div>
+                                        <div class="cell-content">{{ question.question_text }}</div>
                                     </td>
                                     <td>
                                         {% with question.answers.first as answer %}
@@ -217,6 +217,19 @@
         </div>
     </div>
 </div>
+
+<!-- Botones flotantes de scroll -->
+<button id="scrollToTop" class="scroll-btn scroll-top" title="Ir arriba">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+</button>
+
+<button id="scrollToBottom" class="scroll-btn scroll-bottom" title="Ir abajo">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+</button>
 
 <!-- Modal para ver imagen completa -->
 <div id="imageModal" class="modal" onclick="closeImageModal()">
@@ -721,6 +734,55 @@
         white-space: nowrap;
     }
 
+    /* Botones flotantes de scroll */
+    .scroll-btn {
+        position: fixed;
+        right: 30px;
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(to right, #7ed321, #5cb811);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        opacity: 0;
+        visibility: hidden;
+        z-index: 999;
+    }
+
+    .scroll-btn.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .scroll-top {
+        bottom: 100px;
+    }
+
+    .scroll-bottom {
+        bottom: 30px;
+    }
+
+    .scroll-btn:hover {
+        background: linear-gradient(to right, #6bc21b, #4a9a0f);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .scroll-btn:active {
+        transform: translateY(-1px);
+    }
+
+    .scroll-btn svg {
+        width: 24px;
+        height: 24px;
+    }
+
     /* Modal para imágenes */
     .modal {
         display: none;
@@ -882,6 +944,20 @@
         .pagination {
             justify-content: center;
         }
+
+        .scroll-btn {
+            right: 20px;
+            width: 45px;
+            height: 45px;
+        }
+
+        .scroll-top {
+            bottom: 90px;
+        }
+
+        .scroll-bottom {
+            bottom: 25px;
+        }
     }
 
     @media (max-width: 480px) {
@@ -995,6 +1071,25 @@
             font-size: 12px;
             padding: 6px 15px;
         }
+
+        .scroll-btn {
+            right: 15px;
+            width: 40px;
+            height: 40px;
+        }
+
+        .scroll-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .scroll-top {
+            bottom: 80px;
+        }
+
+        .scroll-bottom {
+            bottom: 20px;
+        }
     }
 </style>
 
@@ -1016,6 +1111,48 @@
         if (event.key === "Escape") {
             closeImageModal();
         }
+    });
+
+    // Funcionalidad de botones de scroll
+    const scrollToTopBtn = document.getElementById('scrollToTop');
+    const scrollToBottomBtn = document.getElementById('scrollToBottom');
+
+    // Mostrar/ocultar botones según la posición del scroll
+    window.addEventListener('scroll', function() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight;
+        const clientHeight = document.documentElement.clientHeight;
+        const scrollBottom = scrollHeight - scrollTop - clientHeight;
+
+        // Mostrar botón "ir arriba" si el usuario ha scrolleado más de 300px
+        if (scrollTop > 300) {
+            scrollToTopBtn.classList.add('show');
+        } else {
+            scrollToTopBtn.classList.remove('show');
+        }
+
+        // Mostrar botón "ir abajo" si no está en el final de la página
+        if (scrollBottom > 300) {
+            scrollToBottomBtn.classList.add('show');
+        } else {
+            scrollToBottomBtn.classList.remove('show');
+        }
+    });
+
+    // Scroll suave hacia arriba
+    scrollToTopBtn.addEventListener('click', function() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+
+    // Scroll suave hacia abajo
+    scrollToBottomBtn.addEventListener('click', function() {
+        window.scrollTo({
+            top: document.documentElement.scrollHeight,
+            behavior: 'smooth'
+        });
     });
 </script>
 {% endblock %}
