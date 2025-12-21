@@ -191,3 +191,60 @@ def toggle_user_status(request, user_id):
         messages.success(request, f'Usuario "{user_to_toggle.username}" {status_text} exitosamente.')
 
     return redirect('accounts:user_list')
+
+
+@login_required
+def edit_user(request, user_id):
+    if not request.user.is_admin():
+        messages.error(request, 'No tienes permisos para acceder a esta página.')
+        return redirect('accounts:dashboard')
+
+    user_to_edit = get_object_or_404(User, pk=user_id)
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        user_type = request.POST.get('user_type')
+        password = request.POST.get('password')
+        password_confirm = request.POST.get('password_confirm')
+
+        # Validar username único (excepto el actual)
+        if User.objects.filter(username=username).exclude(pk=user_id).exists():
+            messages.error(request, f'El nombre de usuario "{username}" ya existe.')
+            return render(request, 'accounts/edit_user.html', {'user_to_edit': user_to_edit})
+
+        # Validar email único (excepto el actual)
+        if email and User.objects.filter(email=email).exclude(pk=user_id).exists():
+            messages.error(request, f'El correo electrónico "{email}" ya está registrado.')
+            return render(request, 'accounts/edit_user.html', {'user_to_edit': user_to_edit})
+
+        # Validar contraseñas si se están cambiando
+        if password:
+            if password != password_confirm:
+                messages.error(request, 'Las contraseñas no coinciden.')
+                return render(request, 'accounts/edit_user.html', {'user_to_edit': user_to_edit})
+
+        # Actualizar datos
+        try:
+            user_to_edit.username = username
+            user_to_edit.first_name = first_name
+            user_to_edit.last_name = last_name
+            user_to_edit.email = email
+            user_to_edit.user_type = user_type
+
+            # Cambiar contraseña solo si se proporcionó una nueva
+            if password:
+                user_to_edit.set_password(password)
+
+            user_to_edit.save()
+
+            messages.success(request, f'Usuario "{username}" actualizado exitosamente.')
+            return redirect('accounts:user_list')
+        except Exception as e:
+            messages.error(request, f'Error al actualizar el usuario: {str(e)}')
+            return render(request, 'accounts/edit_user.html', {'user_to_edit': user_to_edit})
+
+    context = {'user_to_edit': user_to_edit}
+    return render(request, 'accounts/edit_user.html', context)
