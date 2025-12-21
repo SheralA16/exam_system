@@ -172,12 +172,24 @@ def exam_delete(request, pk):
 # ============ QUESTION VIEWS ============
 @login_required
 def question_manage(request, exam_id):
+    from django.core.paginator import Paginator
+
     if not request.user.is_admin():
         messages.error(request, 'No tienes permisos para acceder a esta página.')
         return redirect('accounts:dashboard')
 
     exam = get_object_or_404(Exam, pk=exam_id)
-    questions = exam.questions.all().prefetch_related('answers')
+
+    # Obtener parámetro de ordenamiento (por defecto: más reciente primero)
+    order_by = request.GET.get('order', '-id')  # -id = descendente, id = ascendente
+
+    # Obtener preguntas con ordenamiento
+    questions = exam.questions.all().prefetch_related('answers').order_by(order_by)
+
+    # Paginación - 40 preguntas por página
+    paginator = Paginator(questions, 40)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
 
     if request.method == 'POST':
         question_text = request.POST.get('question_text')
@@ -206,11 +218,16 @@ def question_manage(request, exam_id):
             )
 
         messages.success(request, 'Pregunta creada exitosamente.')
-        return redirect('exams:question_manage', exam_id=exam.id)
+        # Redirigir manteniendo el ordenamiento
+        redirect_url = f"{request.path}?order={order_by}"
+        return redirect(redirect_url)
 
     context = {
         'exam': exam,
-        'questions': questions,
+        'questions': page_obj,
+        'page_obj': page_obj,
+        'order_by': order_by,
+        'total_questions': questions.count(),
     }
     return render(request, 'exams/question_manage.html', context)
 
@@ -352,14 +369,11 @@ def student_take_exam(request, exam_id):
     # Búsqueda
     search_query = request.GET.get('search', '').strip()
     if search_query:
-        # Buscar por ID o por texto de pregunta
-        questions = questions.filter(
-            Q(id__icontains=search_query) |
-            Q(question_text__icontains=search_query)
-        )
+        # Buscar solo por texto de pregunta
+        questions = questions.filter(question_text__icontains=search_query)
 
-    # Paginación - 20 preguntas por página
-    paginator = Paginator(questions, 20)
+    # Paginación - 40 preguntas por página
+    paginator = Paginator(questions, 40)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 

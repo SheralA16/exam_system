@@ -35,9 +35,18 @@
                 <div class="header-section">
                     <div class="header-info">
                         <h1>Gestionar Preguntas: {{ exam.title }}</h1>
-                        <p class="subtitle">{{ exam.subject }} - {{ questions.count }} pregunta{{ questions.count|pluralize }}</p>
+                        <p class="subtitle">{{ exam.subject }} - {{ total_questions }} pregunta{{ total_questions|pluralize }}</p>
                     </div>
                     <a href="{% url 'exams:exam_list' exam.course.id %}" class="btn-back">Volver a Temas</a>
+                </div>
+
+                <!-- Ordenamiento -->
+                <div class="sort-container">
+                    <label for="sort-select">Ordenar por:</label>
+                    <select id="sort-select" class="sort-select" onchange="window.location.href='?order=' + this.value">
+                        <option value="-id" {% if order_by == '-id' %}selected{% endif %}>Más reciente primero</option>
+                        <option value="id" {% if order_by == 'id' %}selected{% endif %}>Más antigua primero</option>
+                    </select>
                 </div>
 
                 {% if questions %}
@@ -56,7 +65,7 @@
                             <tbody>
                                 {% for question in questions %}
                                     <tr>
-                                        <td class="text-center">{{ forloop.counter }}</td>
+                                        <td class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</td>
                                         <td>
                                             <div class="cell-content">{{ question.question_text|truncatewords:8 }}</div>
                                         </td>
@@ -102,6 +111,72 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Paginación -->
+                    {% if page_obj.has_other_pages %}
+                        <div class="pagination-container">
+                            <div class="pagination-info">
+                                Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} pregunta{{ page_obj.paginator.count|pluralize }}
+                            </div>
+                            <div class="pagination">
+                                {% if page_obj.has_previous %}
+                                    <a href="?page=1&order={{ order_by }}" class="page-link" title="Primera página">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="11 17 6 12 11 7"></polyline>
+                                            <polyline points="18 17 13 12 18 7"></polyline>
+                                        </svg>
+                                    </a>
+                                    <a href="?page={{ page_obj.previous_page_number }}&order={{ order_by }}" class="page-link" title="Anterior">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="15 18 9 12 15 6"></polyline>
+                                        </svg>
+                                    </a>
+                                {% else %}
+                                    <span class="page-link disabled">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="11 17 6 12 11 7"></polyline>
+                                            <polyline points="18 17 13 12 18 7"></polyline>
+                                        </svg>
+                                    </span>
+                                    <span class="page-link disabled">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="15 18 9 12 15 6"></polyline>
+                                        </svg>
+                                    </span>
+                                {% endif %}
+
+                                <span class="page-current">
+                                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                </span>
+
+                                {% if page_obj.has_next %}
+                                    <a href="?page={{ page_obj.next_page_number }}&order={{ order_by }}" class="page-link" title="Siguiente">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="9 18 15 12 9 6"></polyline>
+                                        </svg>
+                                    </a>
+                                    <a href="?page={{ page_obj.paginator.num_pages }}&order={{ order_by }}" class="page-link" title="Última página">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="13 17 18 12 13 7"></polyline>
+                                            <polyline points="6 17 11 12 6 7"></polyline>
+                                        </svg>
+                                    </a>
+                                {% else %}
+                                    <span class="page-link disabled">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="9 18 15 12 9 6"></polyline>
+                                        </svg>
+                                    </span>
+                                    <span class="page-link disabled">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="13 17 18 12 13 7"></polyline>
+                                            <polyline points="6 17 11 12 6 7"></polyline>
+                                        </svg>
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
                 {% else %}
                     <div class="empty-state">
                         <p>No hay preguntas aún. Crea la primera usando el formulario.</p>
@@ -420,6 +495,110 @@
         color: #7f8c8d;
     }
 
+    /* Ordenamiento */
+    .sort-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding: 15px 20px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
+    }
+
+    .sort-container label {
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+
+    .sort-select {
+        padding: 8px 30px 8px 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+
+    .sort-select:hover {
+        border-color: #7ed321;
+    }
+
+    .sort-select:focus {
+        outline: none;
+        border-color: #7ed321;
+        box-shadow: 0 0 0 3px rgba(126, 211, 33, 0.1);
+    }
+
+    /* Paginación */
+    .pagination-container {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .pagination-info {
+        color: #7f8c8d;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .pagination {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .page-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        color: #2c3e50;
+        text-decoration: none;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .page-link:hover:not(.disabled) {
+        background: #7ed321;
+        border-color: #7ed321;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .page-link.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background: #f5f5f5;
+    }
+
+    .page-current {
+        padding: 8px 20px;
+        background: linear-gradient(to right, #7ed321, #5cb811);
+        color: white;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+
     /* Columna Derecha */
     .right-column {
         position: sticky;
@@ -589,6 +768,25 @@
         .questions-table td {
             padding: 8px 6px;
         }
+
+        .sort-container {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .sort-select {
+            width: 100%;
+        }
+
+        .pagination-container {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .pagination {
+            justify-content: center;
+        }
     }
 
     @media (max-width: 480px) {
@@ -616,6 +814,36 @@
         .questions-table td {
             font-size: 11px;
             padding: 8px 4px;
+        }
+
+        .sort-container {
+            padding: 12px 15px;
+        }
+
+        .sort-container label {
+            font-size: 13px;
+        }
+
+        .sort-select {
+            font-size: 13px;
+        }
+
+        .pagination-container {
+            padding: 15px;
+        }
+
+        .pagination-info {
+            font-size: 12px;
+        }
+
+        .page-link {
+            width: 32px;
+            height: 32px;
+        }
+
+        .page-current {
+            font-size: 12px;
+            padding: 6px 15px;
         }
     }
 </style>
