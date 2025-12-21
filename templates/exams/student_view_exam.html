@@ -1,0 +1,700 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="view-container">
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <img src="{% static 'images/imgizquierdo.png' %}" alt="USS" class="navbar-logo">
+        </div>
+        <div class="navbar-menu">
+            <a href="{% url 'accounts:dashboard' %}" class="btn-nav">Mis Cursos</a>
+            <div class="user-info">
+                <svg class="user-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+            </div>
+            <a href="{% url 'accounts:logout' %}" class="btn-logout">Cerrar Sesión</a>
+        </div>
+    </nav>
+
+    <div class="exam-header-bar">
+        <div class="exam-header-content">
+            <div class="exam-title-section">
+                <h1>{{ exam.title }}</h1>
+                <span class="subject-badge">{{ exam.subject }}</span>
+            </div>
+            <a href="{% url 'exams:student_course_exams' exam.course.id %}" class="btn-back-header">Volver a Temas</a>
+        </div>
+    </div>
+
+    {% if exam.description or exam.image %}
+    <div class="exam-details">
+        <div class="exam-details-content">
+            {% if exam.description %}
+                <p class="exam-description">{{ exam.description }}</p>
+            {% endif %}
+            {% if exam.image %}
+                <div class="exam-image-container">
+                    <img src="{{ exam.image.url }}" class="exam-image" alt="{{ exam.title }}">
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="content">
+
+        <div class="questions-section">
+            <div class="section-header">
+                <h2>Contenido del Tema</h2>
+                <div class="header-actions">
+                    <span class="question-count">{{ questions.count }} pregunta{{ questions.count|pluralize }}</span>
+                    {% if exam.pdf_file %}
+                        <a href="{% url 'exams:student_view_pdf' exam.id %}" class="btn-pdf-icon" title="Ver PDF">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                            </svg>
+                            PDF
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if questions %}
+                <div class="table-wrapper">
+                    <table class="questions-table">
+                        <thead>
+                            <tr>
+                                <th width="35%">PREGUNTA</th>
+                                <th width="30%">RESPUESTA</th>
+                                <th width="25%">DESCRIPCIÓN</th>
+                                <th width="10%">IMAGEN</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for question in questions %}
+                                <tr>
+                                    <td>
+                                        <div class="cell-content"><strong>{{ forloop.counter }}.</strong> {{ question.question_text }}</div>
+                                    </td>
+                                    <td>
+                                        {% with question.answers.first as answer %}
+                                            {% if answer %}
+                                                <div class="cell-content answer-cell">{{ answer.answer_text }}</div>
+                                            {% else %}
+                                                <span class="no-data">-</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        {% if question.explanation %}
+                                            <div class="cell-content description-cell">{{ question.explanation }}</div>
+                                        {% else %}
+                                            <span class="no-data">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if question.image %}
+                                            <img src="{{ question.image.url }}" alt="Imagen" class="thumbnail" onclick="openImageModal(this.src)">
+                                        {% else %}
+                                            <span class="no-data">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="no-content">
+                    <p>No hay preguntas disponibles en este tema.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver imagen completa -->
+<div id="imageModal" class="modal" onclick="closeImageModal()">
+    <span class="close">&times;</span>
+    <img class="modal-content" id="modalImage">
+</div>
+
+<style>
+    body {
+        background: #f5f5f5;
+        overflow-y: auto !important;
+        margin: 0;
+        padding: 0;
+    }
+
+    .view-container {
+        min-height: 100vh;
+    }
+
+    .navbar {
+        background: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .navbar-logo {
+        height: 50px;
+    }
+
+    .navbar-menu {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .btn-nav {
+        background: #f0f0f0;
+        color: #2c3e50;
+        text-decoration: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        transition: background 0.3s;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .btn-nav:hover {
+        background: #e0e0e0;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .user-icon {
+        color: #2c3e50;
+    }
+
+    .user-name {
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 15px;
+    }
+
+    .btn-logout {
+        background: #e74c3c;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: background 0.3s;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .btn-logout:hover {
+        background: #c0392b;
+    }
+
+    .exam-header-bar {
+        background: linear-gradient(to right, #7ed321, #5cb811);
+        padding: 20px 30px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .exam-header-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .exam-title-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .exam-title-section h1 {
+        color: white;
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+    }
+
+    .subject-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.25);
+        color: white;
+        padding: 6px 16px;
+        border-radius: 16px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-back-header {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s;
+        white-space: nowrap;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-back-header:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .exam-details {
+        background: white;
+        padding: 25px 30px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .exam-details-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+    }
+
+    .exam-description {
+        color: #666;
+        line-height: 1.6;
+        margin: 0;
+        font-size: 15px;
+        flex: 1;
+    }
+
+    .exam-image-container {
+        flex-shrink: 0;
+    }
+
+    .exam-image {
+        max-width: 180px;
+        max-height: 140px;
+        border-radius: 8px;
+        object-fit: cover;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+
+    .questions-section {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .section-header {
+        background: linear-gradient(to right, #f8f9fa, #e9ecef);
+        padding: 20px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .section-header h2 {
+        color: #2c3e50;
+        margin: 0;
+        font-size: 22px;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .question-count {
+        background: #7ed321;
+        color: white;
+        padding: 6px 15px;
+        border-radius: 15px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .btn-pdf-icon {
+        background: linear-gradient(to right, #e74c3c, #c0392b);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.3s;
+        box-shadow: 0 2px 6px rgba(231, 76, 60, 0.3);
+    }
+
+    .btn-pdf-icon:hover {
+        background: linear-gradient(to right, #c0392b, #a93226);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(231, 76, 60, 0.4);
+    }
+
+    .btn-pdf-icon svg {
+        flex-shrink: 0;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .questions-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .questions-table thead {
+        background: #FFF9E6;
+        border-bottom: 2px solid #e8ddb5;
+    }
+
+    .questions-table th {
+        padding: 15px 12px;
+        text-align: left;
+        color: #6b5d3f;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .questions-table tbody tr {
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.2s;
+    }
+
+    .questions-table tbody tr:hover {
+        background: #fafafa;
+    }
+
+    .questions-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .questions-table td {
+        padding: 16px 12px;
+        vertical-align: top;
+        font-size: 14px;
+        color: #555;
+    }
+
+    .text-center {
+        text-align: center;
+        vertical-align: middle !important;
+    }
+
+    .cell-content {
+        line-height: 1.6;
+    }
+
+    .answer-cell {
+        color: #27ae60;
+        font-weight: 500;
+    }
+
+    .description-cell {
+        color: #7f8c8d;
+        font-style: italic;
+        font-size: 13px;
+    }
+
+    .no-data {
+        color: #bdc3c7;
+        font-style: italic;
+        font-size: 13px;
+    }
+
+    .thumbnail {
+        width: 45px;
+        height: 45px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 2px solid #e0e0e0;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .thumbnail:hover {
+        border-color: #7ed321;
+        transform: scale(1.1);
+    }
+
+    .no-content {
+        padding: 60px 30px;
+        text-align: center;
+        color: #7f8c8d;
+    }
+
+    /* Modal para imágenes */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        padding-top: 60px;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.9);
+    }
+
+    .modal-content {
+        margin: auto;
+        display: block;
+        max-width: 90%;
+        max-height: 80%;
+        border-radius: 8px;
+    }
+
+    .close {
+        position: absolute;
+        top: 30px;
+        right: 45px;
+        color: #f1f1f1;
+        font-size: 50px;
+        font-weight: bold;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: #bbb;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .exam-header-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .btn-back-header {
+            align-self: stretch;
+            text-align: center;
+        }
+
+        .exam-details-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .exam-image-container {
+            align-self: center;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .exam-header-bar {
+            padding: 15px 20px;
+        }
+
+        .exam-title-section h1 {
+            font-size: 22px;
+        }
+
+        .exam-details {
+            padding: 20px;
+        }
+        .navbar {
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+        }
+
+        .navbar-logo {
+            height: 40px;
+        }
+
+        .navbar-menu {
+            flex-direction: column;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .user-info {
+            justify-content: center;
+        }
+
+        .btn-nav,
+        .btn-logout {
+            width: 100%;
+            text-align: center;
+        }
+
+        .content {
+            padding: 20px 15px;
+        }
+
+        .exam-header {
+            padding: 20px;
+        }
+
+        .exam-info h1 {
+            font-size: 24px;
+        }
+
+        .btn-back {
+            width: 100%;
+            text-align: center;
+        }
+
+        .section-header {
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px 20px;
+        }
+
+        .section-header h2 {
+            font-size: 18px;
+        }
+
+        .header-actions {
+            flex-direction: row;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .questions-table th,
+        .questions-table td {
+            padding: 12px 8px;
+            font-size: 12px;
+        }
+
+        .questions-table th {
+            font-size: 11px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .navbar-logo {
+            height: 35px;
+        }
+
+        .exam-header-bar {
+            padding: 12px 15px;
+        }
+
+        .exam-title-section {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .exam-title-section h1 {
+            font-size: 18px;
+        }
+
+        .subject-badge {
+            font-size: 11px;
+            padding: 5px 12px;
+        }
+
+        .btn-back-header {
+            font-size: 13px;
+            padding: 8px 16px;
+        }
+
+        .exam-details {
+            padding: 15px;
+        }
+
+        .exam-description {
+            font-size: 13px;
+        }
+
+        .exam-image {
+            max-width: 150px;
+            max-height: 100px;
+        }
+
+        .content {
+            padding: 15px 10px;
+        }
+
+        .header-actions {
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn-pdf-icon {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .section-header {
+            padding: 12px 15px;
+        }
+
+        .section-header h2 {
+            font-size: 16px;
+        }
+
+        .question-count {
+            font-size: 11px;
+            padding: 4px 12px;
+        }
+
+        .questions-table th,
+        .questions-table td {
+            padding: 10px 6px;
+            font-size: 11px;
+        }
+
+        .thumbnail {
+            width: 35px;
+            height: 35px;
+        }
+    }
+</style>
+
+<script>
+    function openImageModal(src) {
+        var modal = document.getElementById("imageModal");
+        var modalImg = document.getElementById("modalImage");
+        modal.style.display = "block";
+        modalImg.src = src;
+    }
+
+    function closeImageModal() {
+        var modal = document.getElementById("imageModal");
+        modal.style.display = "none";
+    }
+
+    // Cerrar modal con tecla ESC
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape") {
+            closeImageModal();
+        }
+    });
+</script>
+{% endblock %}

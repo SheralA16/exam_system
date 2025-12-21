@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h1>{% if exam %}Editar{% else %}Crear{% endif %} Tema</h1>
+        <p>Complete la información del tema educativo</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="exam-form">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="title">Título del Tema *</label>
+            <input type="text" name="title" id="title" placeholder="Ej: Introducción a Python" value="{{ exam.title|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="subject">Materia *</label>
+            <input type="text" name="subject" id="subject" placeholder="Ej: Programación" value="{{ exam.subject|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Descripción</label>
+            <textarea name="description" id="description" rows="4" placeholder="Descripción del contenido del tema">{{ exam.description|default:'' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="image">Imagen del Tema (opcional)</label>
+            {% if exam.image %}
+                <img src="{{ exam.image.url }}" alt="{{ exam.title }}" style="max-width: 200px; margin-bottom: 10px; border-radius: 4px;">
+            {% endif %}
+            <input type="file" name="image" id="image" accept="image/*">
+        </div>
+
+        <div class="form-group">
+            <label for="pdf_file">Archivo PDF (opcional)</label>
+            {% if exam.pdf_file %}
+                <div style="padding: 10px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">
+                    <p style="margin: 0; color: #27ae60;">📄 PDF actual: {{ exam.pdf_file.name|slice:"11:" }}</p>
+                    <small style="color: #7f8c8d;">Sube un nuevo archivo para reemplazarlo</small>
+                </div>
+            {% endif %}
+            <input type="file" name="pdf_file" id="pdf_file" accept="application/pdf">
+            <small style="color: #7f8c8d; font-size: 12px; display: block; margin-top: 5px;">Formatos aceptados: PDF (máx. 10MB)</small>
+        </div>
+
+        <!-- Campos ocultos con valores por defecto -->
+        <input type="hidden" name="total_marks" value="0">
+        <input type="hidden" name="passing_marks" value="0">
+        <input type="hidden" name="duration_minutes" value="0">
+        <input type="hidden" name="exam_date" value="2025-01-01T00:00">
+
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">Guardar Tema</button>
+            <a href="{% url 'exams:exam_list' course.id %}" class="btn-cancel">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    body { background: #f5f5f5; }
+    .form-container {
+        max-width: 700px;
+        margin: 50px auto;
+        padding: 40px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .form-header {
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    .form-header h1 {
+        color: #2c3e50;
+        margin: 0 0 10px 0;
+    }
+    .form-header p {
+        color: #7f8c8d;
+        margin: 0;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #2c3e50;
+        font-weight: bold;
+    }
+    .form-container input,
+    .form-container textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        font-family: Arial, sans-serif;
+    }
+    .form-container input:focus,
+    .form-container textarea:focus {
+        outline: none;
+        border-color: #7ed321;
+    }
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+    .btn-submit {
+        flex: 1;
+        background: linear-gradient(to right, #7ed321, #5cb811);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    .btn-submit:hover {
+        background: linear-gradient(to right, #6bc21b, #4a9a0f);
+        transform: translateY(-2px);
+    }
+    .btn-cancel {
+        flex: 1;
+        background: #95a5a6;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 4px;
+        text-decoration: none;
+        text-align: center;
+        font-size: 16px;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    .btn-cancel:hover {
+        background: #7f8c8d;
+    }
+</style>
+{% endblock %}

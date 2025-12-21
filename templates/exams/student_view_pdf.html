@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="pdf-viewer-container">
+    <nav class="navbar">
+        <div class="nav-left">
+            <img src="{% static 'images/imgizquierdo.png' %}" height="40">
+            <span class="pdf-title">{{ exam.title }}</span>
+        </div>
+        <div class="nav-right">
+            <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+            <a href="{% url 'exams:student_take_exam' exam.id %}" class="btn-nav">Volver al Tema</a>
+        </div>
+    </nav>
+
+    <div class="pdf-container">
+        <iframe
+            id="pdfViewer"
+            src="{{ exam.pdf_file.url }}"
+            type="application/pdf"
+            frameborder="0"
+            allowfullscreen>
+        </iframe>
+    </div>
+</div>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #525659;
+    }
+
+    .pdf-viewer-container {
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .navbar {
+        background: linear-gradient(to right, #2c3e50, #34495e);
+        padding: 12px 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        z-index: 100;
+    }
+
+    .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .pdf-title {
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .user-name {
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .btn-nav {
+        background: #3498db;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: background 0.3s;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .btn-nav:hover {
+        background: #2980b9;
+    }
+
+    .pdf-container {
+        flex: 1;
+        width: 100%;
+        height: calc(100vh - 64px);
+        background: #525659;
+        overflow: hidden;
+    }
+
+    #pdfViewer {
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: block;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .navbar {
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+        }
+
+        .nav-left,
+        .nav-right {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .nav-left {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-right {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pdf-title {
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .btn-nav {
+            width: 100%;
+            text-align: center;
+        }
+
+        .pdf-container {
+            height: calc(100vh - 180px);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .navbar {
+            padding: 12px;
+        }
+
+        .pdf-title {
+            font-size: 13px;
+        }
+
+        .user-name {
+            font-size: 13px;
+        }
+
+        .btn-nav {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+    }
+</style>
+
+<script>
+    // Deshabilitar clic derecho
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+    });
+
+    // Deshabilitar atajos de teclado para guardar/imprimir
+    document.addEventListener('keydown', function(e) {
+        // Ctrl+S (Guardar)
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            return false;
+        }
+        // Ctrl+P (Imprimir)
+        if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+            e.preventDefault();
+            return false;
+        }
+    });
+</script>
+{% endblock %}

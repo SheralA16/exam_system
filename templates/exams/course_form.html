@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ course.id|yesno:"Editar,Crear" }} Curso - USS{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>{% if course %}Editar Curso{% else %}Crear Nuevo Curso{% endif %}</h1>
+
+    <form method="post" enctype="multipart/form-data" class="course-form">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="name">Nombre del Curso *</label>
+            <input type="text" name="name" id="name" value="{{ course.name|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Descripción</label>
+            <textarea name="description" id="description" rows="4">{{ course.description|default:'' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="image">Imagen del Curso</label>
+            {% if course.image %}
+                <img src="{{ course.image.url }}" alt="{{ course.name }}" style="max-width: 200px; margin-bottom: 10px;">
+            {% endif %}
+            <input type="file" name="image" id="image" accept="image/*">
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">Guardar</button>
+            <a href="{% url 'exams:course_list' %}" class="btn-cancel">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form-container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 30px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    .form-group input, .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    .form-actions {
+        display: flex;
+        gap: 10px;
+    }
+    .btn-submit {
+        background: #7ed321;
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .btn-cancel {
+        background: #95a5a6;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 4px;
+        text-decoration: none;
+        display: inline-block;
+    }
+</style>
+{% endblock %}

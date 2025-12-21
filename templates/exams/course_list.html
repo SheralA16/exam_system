@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Cursos - USS{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <img src="{% static 'images/imgizquierdo.png' %}" alt="USS" class="navbar-logo">
+        </div>
+        <div class="navbar-menu">
+            <a href="{% url 'accounts:dashboard' %}" class="btn-nav">Dashboard</a>
+            <div class="user-info">
+                <svg class="user-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+            </div>
+            <a href="{% url 'accounts:logout' %}" class="btn-logout">Cerrar Sesión</a>
+        </div>
+    </nav>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <h1>Gestión de Cursos</h1>
+            <a href="{% url 'exams:course_create' %}" class="btn-primary">+ Crear Nuevo Curso</a>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="courses-grid">
+            {% for course in courses %}
+                <div class="course-card">
+                    {% if course.image %}
+                        <img src="{{ course.image.url }}" alt="{{ course.name }}" class="course-image">
+                    {% else %}
+                        <div class="course-image-placeholder">
+                            <span>{{ course.name|slice:":1"|upper }}</span>
+                        </div>
+                    {% endif %}
+                    <div class="course-content">
+                        <h3>{{ course.name }}</h3>
+                        <p>{{ course.description|truncatewords:20|default:"Sin descripción" }}</p>
+                        <div class="course-actions">
+                            <a href="{% url 'exams:exam_list' course.id %}" class="btn-action">Ver Exámenes</a>
+                            <a href="{% url 'exams:course_edit' course.id %}" class="btn-action btn-edit">Editar</a>
+                            <a href="{% url 'exams:course_delete' course.id %}" class="btn-action btn-delete" onclick="return confirm('¿Estás seguro de eliminar este curso?')">Eliminar</a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    <p>No hay cursos disponibles.</p>
+                    <a href="{% url 'exams:course_create' %}" class="btn-primary">Crear el primer curso</a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-container {
+        min-height: 100vh;
+        background-color: #f5f5f5;
+    }
+
+    .navbar {
+        background: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar-logo {
+        height: 50px;
+    }
+
+    .navbar-menu {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .btn-nav {
+        color: #2c3e50;
+        text-decoration: none;
+        padding: 8px 15px;
+        background-color: #f0f0f0;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+        font-weight: 600;
+    }
+
+    .btn-nav:hover {
+        background-color: #e0e0e0;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .user-icon {
+        color: #2c3e50;
+    }
+
+    .user-name {
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 15px;
+    }
+
+    .btn-logout {
+        background-color: #e74c3c;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+        font-weight: 600;
+    }
+
+    .btn-logout:hover {
+        background-color: #c0392b;
+    }
+
+    .content-wrapper {
+        padding: 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .content-header h1 {
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    .btn-primary {
+        background: linear-gradient(to right, #7ed321, #5cb811);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s;
+        box-shadow: 0 4px 6px rgba(126, 211, 33, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(to right, #6bc21b, #4a9a0f);
+        transform: translateY(-2px);
+    }
+
+    .courses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 25px;
+    }
+
+    .course-card {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .course-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .course-image-placeholder {
+        width: 100%;
+        height: 200px;
+        background: linear-gradient(135deg, #7ed321 0%, #5cb811 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .course-image-placeholder span {
+        font-size: 72px;
+        color: white;
+        font-weight: bold;
+    }
+
+    .course-content {
+        padding: 20px;
+    }
+
+    .course-content h3 {
+        color: #2c3e50;
+        margin: 0 0 10px 0;
+    }
+
+    .course-content p {
+        color: #7f8c8d;
+        margin-bottom: 20px;
+    }
+
+    .course-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 8px 15px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 14px;
+        transition: all 0.3s;
+        background: #3498db;
+        color: white;
+    }
+
+    .btn-action:hover {
+        opacity: 0.8;
+    }
+
+    .btn-edit {
+        background: #f39c12;
+    }
+
+    .btn-delete {
+        background: #e74c3c;
+    }
+
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 8px;
+    }
+
+    .empty-state p {
+        color: #7f8c8d;
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .navbar {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .navbar-menu {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .content-wrapper {
+            padding: 20px;
+        }
+
+        .content-header {
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .content-header h1 {
+            font-size: 24px;
+        }
+
+        .courses-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .course-actions {
+            flex-direction: column;
+        }
+
+        .btn-action {
+            width: 100%;
+            text-align: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .navbar-logo {
+            height: 35px;
+        }
+
+        .content-wrapper {
+            padding: 15px;
+        }
+
+        .content-header h1 {
+            font-size: 20px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            text-align: center;
+        }
+
+        .course-image, .course-image-placeholder {
+            height: 150px;
+        }
+
+        .course-image-placeholder span {
+            font-size: 48px;
+        }
+    }
+</style>
+{% endblock %}

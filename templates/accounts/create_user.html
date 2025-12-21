@@ -1,0 +1,420 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Usuario - USS{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <img src="{% static 'images/imgizquierdo.png' %}" alt="USS" class="navbar-logo">
+        </div>
+        <div class="navbar-menu">
+            <a href="{% url 'accounts:dashboard' %}" class="btn-nav">Dashboard</a>
+            <a href="{% url 'accounts:user_list' %}" class="btn-nav">Ver Usuarios</a>
+            <div class="user-info">
+                <svg class="user-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+            </div>
+            <a href="{% url 'accounts:logout' %}" class="btn-logout">Cerrar Sesión</a>
+        </div>
+    </nav>
+
+    <div class="content-wrapper">
+        <div class="content-header">
+            <h1>Crear Nuevo Usuario</h1>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="form-container">
+            <form method="post" class="user-form">
+                {% csrf_token %}
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="user_type">Tipo de Usuario *</label>
+                        <select name="user_type" id="user_type" class="form-input" required>
+                            <option value="student">Estudiante</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="username">Nombre de Usuario *</label>
+                        <input type="text" name="username" id="username" class="form-input" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="first_name">Nombres</label>
+                        <input type="text" name="first_name" id="first_name" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="last_name">Apellidos</label>
+                        <input type="text" name="last_name" id="last_name" class="form-input">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Correo Electrónico</label>
+                    <input type="email" name="email" id="email" class="form-input">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group password-group">
+                        <label for="password">Contraseña *</label>
+                        <input type="password" name="password" id="password" class="form-input" required>
+                        <button type="button" class="toggle-password" data-target="password" aria-label="Mostrar contraseña">
+                            <svg class="eye-icon eye-open" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg class="eye-icon eye-closed" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="form-group password-group">
+                        <label for="password_confirm">Confirmar Contraseña *</label>
+                        <input type="password" name="password_confirm" id="password_confirm" class="form-input" required>
+                        <button type="button" class="toggle-password" data-target="password_confirm" aria-label="Mostrar contraseña">
+                            <svg class="eye-icon eye-open" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg class="eye-icon eye-closed" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <p class="required-text">* indica un campo obligatorio</p>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">Crear Usuario</button>
+                    <a href="{% url 'accounts:user_list' %}" class="btn-cancel">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-container {
+        min-height: 100vh;
+        background-color: #f5f5f5;
+    }
+
+    .navbar {
+        background: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar-logo {
+        height: 50px;
+    }
+
+    .navbar-menu {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .btn-nav {
+        color: #2c3e50;
+        text-decoration: none;
+        padding: 8px 15px;
+        background-color: #f0f0f0;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+        font-weight: 600;
+    }
+
+    .btn-nav:hover {
+        background-color: #e0e0e0;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .user-icon {
+        color: #2c3e50;
+    }
+
+    .user-name {
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 15px;
+    }
+
+    .btn-logout {
+        background-color: #e74c3c;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+        font-weight: 600;
+    }
+
+    .btn-logout:hover {
+        background-color: #c0392b;
+    }
+
+    .content-wrapper {
+        padding: 40px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .content-header {
+        margin-bottom: 30px;
+    }
+
+    .content-header h1 {
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    .form-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+    }
+
+    .user-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .form-group label {
+        margin-bottom: 8px;
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .form-input {
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #5cb811;
+    }
+
+    .password-group {
+        position: relative;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 15px;
+        top: 38px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+        transition: color 0.3s ease;
+    }
+
+    .toggle-password:hover {
+        color: #5cb811;
+    }
+
+    .toggle-password:focus {
+        outline: none;
+    }
+
+    .eye-icon {
+        display: block;
+    }
+
+    .required-text {
+        color: #7f8c8d;
+        font-size: 13px;
+        margin: 10px 0;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .btn-submit {
+        flex: 1;
+        background: linear-gradient(to right, #7ed321, #5cb811);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-submit:hover {
+        background: linear-gradient(to right, #6bc21b, #4a9a0f);
+        transform: translateY(-2px);
+    }
+
+    .btn-cancel {
+        flex: 1;
+        background-color: #95a5a6;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 4px;
+        text-decoration: none;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .btn-cancel:hover {
+        background-color: #7f8c8d;
+    }
+
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .navbar {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .navbar-menu {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .content-wrapper {
+            padding: 20px;
+        }
+
+        .form-container {
+            padding: 25px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .navbar-logo {
+            height: 35px;
+        }
+
+        .content-wrapper {
+            padding: 15px;
+        }
+
+        .content-header h1 {
+            font-size: 20px;
+        }
+
+        .form-container {
+            padding: 20px;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleButtons = document.querySelectorAll('.toggle-password');
+
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                const eyeOpen = this.querySelector('.eye-open');
+                const eyeClosed = this.querySelector('.eye-closed');
+
+                // Toggle the password visibility
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+
+                // Toggle the eye icons
+                if (type === 'password') {
+                    eyeOpen.style.display = 'block';
+                    eyeClosed.style.display = 'none';
+                    this.setAttribute('aria-label', 'Mostrar contraseña');
+                } else {
+                    eyeOpen.style.display = 'none';
+                    eyeClosed.style.display = 'block';
+                    this.setAttribute('aria-label', 'Ocultar contraseña');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

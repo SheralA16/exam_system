@@ -1,0 +1,622 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <img src="{% static 'images/imgizquierdo.png' %}" alt="USS" class="navbar-logo">
+        </div>
+        <div class="navbar-menu">
+            <a href="{% url 'accounts:dashboard' %}" class="btn-nav">Dashboard</a>
+            <div class="user-info">
+                <svg class="user-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+            </div>
+            <a href="{% url 'accounts:logout' %}" class="btn-logout">Cerrar Sesión</a>
+        </div>
+    </nav>
+
+    <div class="content-wrapper">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="two-column-layout">
+            <!-- Columna Izquierda: Lista de Preguntas -->
+            <div class="left-column">
+                <div class="header-section">
+                    <div class="header-info">
+                        <h1>Gestionar Preguntas: {{ exam.title }}</h1>
+                        <p class="subtitle">{{ exam.subject }} - {{ questions.count }} pregunta{{ questions.count|pluralize }}</p>
+                    </div>
+                    <a href="{% url 'exams:exam_list' exam.course.id %}" class="btn-back">Volver a Temas</a>
+                </div>
+
+                {% if questions %}
+                    <div class="table-container">
+                        <table class="questions-table">
+                            <thead>
+                                <tr>
+                                    <th width="5%">#</th>
+                                    <th width="30%">PREGUNTA</th>
+                                    <th width="25%">RESPUESTA</th>
+                                    <th width="20%">COMENTARIO</th>
+                                    <th width="10%">IMAGEN</th>
+                                    <th width="10%">ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for question in questions %}
+                                    <tr>
+                                        <td class="text-center">{{ forloop.counter }}</td>
+                                        <td>
+                                            <div class="cell-content">{{ question.question_text|truncatewords:8 }}</div>
+                                        </td>
+                                        <td>
+                                            {% with question.answers.first as answer %}
+                                                {% if answer %}
+                                                    <div class="cell-content">{{ answer.answer_text|truncatewords:6 }}</div>
+                                                {% else %}
+                                                    <span class="no-data">-</span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
+                                        <td>
+                                            {% if question.explanation %}
+                                                <div class="cell-content">{{ question.explanation|truncatewords:5 }}</div>
+                                            {% else %}
+                                                <span class="no-data">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if question.image %}
+                                                <span class="has-image">✓</span>
+                                            {% else %}
+                                                <span class="no-data">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="actions-cell">
+                                            <a href="{% url 'exams:question_edit' question.id %}" class="btn-icon btn-edit" title="Editar">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                </svg>
+                                            </a>
+                                            <a href="{% url 'exams:question_delete' question.id %}" class="btn-icon btn-delete" title="Eliminar" onclick="return confirm('¿Estás seguro de eliminar esta pregunta?')">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                </svg>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <p>No hay preguntas aún. Crea la primera usando el formulario.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Columna Derecha: Formulario de Crear Pregunta -->
+            <div class="right-column">
+                <div class="form-panel">
+                    <h2>Crear Pregunta</h2>
+                    <p class="form-subtitle">Tema: {{ exam.title }}</p>
+
+                    <form method="post" enctype="multipart/form-data" id="questionForm">
+                        {% csrf_token %}
+
+                        <div class="form-group">
+                            <label for="question_text">Texto de la Pregunta *</label>
+                            <textarea
+                                name="question_text"
+                                id="question_text"
+                                rows="4"
+                                placeholder="Escribe aquí el texto de la pregunta..."
+                                required></textarea>
+                            <small>Escribe una pregunta clara y concisa</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="answer_text">Respuesta *</label>
+                            <textarea
+                                name="answer_text"
+                                id="answer_text"
+                                rows="3"
+                                placeholder="Escribe la respuesta a la pregunta..."
+                                required></textarea>
+                            <small>Esta es la respuesta correcta para la pregunta</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="explanation">Comentario / Explicación (opcional)</label>
+                            <textarea
+                                name="explanation"
+                                id="explanation"
+                                rows="3"
+                                placeholder="Añade un comentario o explicación adicional..."></textarea>
+                            <small>Opcional: Información adicional o contexto sobre la pregunta</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="image">Imagen (opcional)</label>
+                            <input
+                                type="file"
+                                name="image"
+                                id="image"
+                                accept="image/*">
+                            <small>Formatos aceptados: JPG, PNG, GIF (máx. 5MB)</small>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-submit">Crear Pregunta</button>
+                            <button type="reset" class="btn-cancel">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background: #f5f5f5;
+        overflow-y: auto !important;
+    }
+
+    .dashboard-container {
+        min-height: 100vh;
+    }
+
+    .navbar {
+        background: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .navbar-logo {
+        height: 50px;
+    }
+
+    .navbar-menu {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .btn-nav {
+        color: #2c3e50;
+        text-decoration: none;
+        padding: 8px 15px;
+        background: #f0f0f0;
+        border-radius: 4px;
+        transition: background 0.3s;
+        font-weight: 600;
+    }
+
+    .btn-nav:hover {
+        background: #e0e0e0;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .user-icon {
+        color: #2c3e50;
+    }
+
+    .user-name {
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 15px;
+    }
+
+    .btn-logout {
+        background: #e74c3c;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: background 0.3s;
+        font-weight: 600;
+    }
+
+    .btn-logout:hover {
+        background: #c0392b;
+    }
+
+    .content-wrapper {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+
+    .messages {
+        margin-bottom: 20px;
+    }
+
+    .alert {
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+    }
+
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .two-column-layout {
+        display: grid;
+        grid-template-columns: 1fr 500px;
+        gap: 30px;
+    }
+
+    /* Columna Izquierda */
+    .left-column {
+        background: white;
+        border-radius: 8px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #ecf0f1;
+    }
+
+    .header-info h1 {
+        color: #2c3e50;
+        margin: 0 0 8px 0;
+        font-size: 24px;
+    }
+
+    .subtitle {
+        color: #7f8c8d;
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .btn-back {
+        background: #95a5a6;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+
+    .btn-back:hover {
+        background: #7f8c8d;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .questions-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .questions-table thead {
+        background: #2c3e50;
+    }
+
+    .questions-table th {
+        padding: 12px 10px;
+        text-align: left;
+        color: white;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .questions-table tbody tr {
+        border-bottom: 1px solid #ecf0f1;
+        transition: background 0.2s;
+    }
+
+    .questions-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .questions-table td {
+        padding: 12px 10px;
+        vertical-align: middle;
+        font-size: 13px;
+        color: #555;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .cell-content {
+        line-height: 1.4;
+    }
+
+    .no-data {
+        color: #bdc3c7;
+        font-style: italic;
+    }
+
+    .has-image {
+        color: #27ae60;
+        font-weight: bold;
+    }
+
+    .actions-cell {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .btn-icon {
+        padding: 6px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-edit {
+        color: #3498db;
+        background: #ecf8ff;
+    }
+
+    .btn-edit:hover {
+        background: #3498db;
+        color: white;
+    }
+
+    .btn-delete {
+        color: #e74c3c;
+        background: #ffebee;
+    }
+
+    .btn-delete:hover {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #7f8c8d;
+    }
+
+    /* Columna Derecha */
+    .right-column {
+        position: sticky;
+        top: 20px;
+        height: fit-content;
+    }
+
+    .form-panel {
+        background: white;
+        border-radius: 8px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .form-panel h2 {
+        color: #2c3e50;
+        margin: 0 0 8px 0;
+        font-size: 22px;
+    }
+
+    .form-subtitle {
+        color: #7f8c8d;
+        font-size: 14px;
+        margin: 0 0 25px 0;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .form-group textarea,
+    .form-group input[type="file"] {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #ecf0f1;
+        border-radius: 4px;
+        font-size: 14px;
+        font-family: Arial, sans-serif;
+        transition: border-color 0.3s;
+        resize: vertical;
+    }
+
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #7ed321;
+    }
+
+    .form-group input[type="file"] {
+        padding: 8px;
+        cursor: pointer;
+    }
+
+    .form-group small {
+        display: block;
+        margin-top: 5px;
+        color: #95a5a6;
+        font-size: 12px;
+        font-style: italic;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 25px;
+    }
+
+    .btn-submit,
+    .btn-cancel {
+        flex: 1;
+        padding: 12px 20px;
+        border-radius: 4px;
+        border: none;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-submit {
+        background: linear-gradient(to right, #7ed321, #5cb811);
+        color: white;
+    }
+
+    .btn-submit:hover {
+        background: linear-gradient(to right, #6bc21b, #4a9a0f);
+        transform: translateY(-2px);
+    }
+
+    .btn-cancel {
+        background: #95a5a6;
+        color: white;
+    }
+
+    .btn-cancel:hover {
+        background: #7f8c8d;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .two-column-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .right-column {
+            position: static;
+            order: -1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .navbar {
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+        }
+
+        .navbar-logo {
+            height: 40px;
+        }
+
+        .navbar-menu {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .btn-nav, .btn-logout {
+            width: 100%;
+            text-align: center;
+        }
+
+        .content-wrapper {
+            padding: 15px;
+        }
+
+        .left-column {
+            padding: 15px;
+        }
+
+        .header-section {
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .btn-back {
+            width: 100%;
+            text-align: center;
+        }
+
+        .form-panel {
+            padding: 20px;
+        }
+
+        .questions-table {
+            font-size: 12px;
+        }
+
+        .questions-table th,
+        .questions-table td {
+            padding: 8px 6px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .navbar-logo {
+            height: 35px;
+        }
+
+        .header-info h1 {
+            font-size: 18px;
+        }
+
+        .form-panel h2 {
+            font-size: 18px;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .questions-table th {
+            font-size: 10px;
+            padding: 8px 4px;
+        }
+
+        .questions-table td {
+            font-size: 11px;
+            padding: 8px 4px;
+        }
+    }
+</style>
+{% endblock %}

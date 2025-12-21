@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="exam-container">
+    <div class="exam-header">
+        <img src="{% static 'images/imgizquierdo.png' %}" height="40">
+        <h2>{{ exam.title }}</h2>
+        <span>{{ user.get_full_name|default:user.username }}</span>
+    </div>
+
+    <form method="post" class="exam-form">
+        {% csrf_token %}
+
+        {% for question in questions %}
+            <div class="question-item">
+                <div class="question-number">{{ forloop.counter }}.</div>
+                <div class="question-content">
+                    <p class="question-text">{{ question.question_text }}</p>
+                    {% if question.image %}
+                        <img src="{{ question.image.url }}" class="question-image">
+                    {% endif %}
+
+                    <div class="answers-list">
+                        {% for answer in question.answers.all %}
+                            <label class="answer-option">
+                                <input type="radio" name="question_{{ question.id }}" value="{{ answer.id }}" required>
+                                <span class="answer-letter">{{ forloop.counter|add:64|chr }}</span>
+                                <span class="answer-text">{{ answer.answer_text }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn-submit">Enviar Examen</button>
+    </form>
+</div>
+
+<style>
+    body {
+        background: #f5f5f5;
+        overflow-y: auto !important;
+        font-family: Arial, sans-serif;
+    }
+
+    .exam-container {
+        max-width: 900px;
+        margin: 20px auto;
+        padding: 20px 20px 100px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .exam-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        background: linear-gradient(to right, #2c3e50, #34495e);
+        color: white;
+        border-radius: 8px 8px 0 0;
+        margin: -20px -20px 30px;
+    }
+
+    .exam-header h2 {
+        margin: 0;
+    }
+
+    .question-item {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        padding-bottom: 30px;
+        border-bottom: 2px solid #ecf0f1;
+    }
+
+    .question-item:last-of-type {
+        border-bottom: none;
+    }
+
+    .question-number {
+        font-size: 20px;
+        font-weight: bold;
+        color: #2c3e50;
+        min-width: 40px;
+    }
+
+    .question-content {
+        flex: 1;
+    }
+
+    .question-text {
+        color: #2c3e50;
+        font-size: 16px;
+        margin: 0 0 15px 0;
+        line-height: 1.6;
+    }
+
+    .question-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+        margin: 15px 0;
+        display: block;
+    }
+
+    .answers-list {
+        margin-top: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .answer-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 15px;
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .answer-option:hover {
+        background: #e3f2fd;
+        border-color: #3498db;
+    }
+
+    .answer-option input[type="radio"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .answer-letter {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 28px;
+        background: #3498db;
+        color: white;
+        border-radius: 50%;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .answer-text {
+        flex: 1;
+        color: #34495e;
+        font-size: 15px;
+        line-height: 1.4;
+    }
+
+    .answer-option input[type="radio"]:checked + .answer-letter {
+        background: #27ae60;
+    }
+
+    .answer-option:has(input[type="radio"]:checked) {
+        background: #d4edda;
+        border-color: #27ae60;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(to right, #27ae60, #229954);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(39, 174, 96, 0.3);
+        transition: all 0.3s;
+    }
+
+    .btn-submit:hover {
+        background: linear-gradient(to right, #229954, #1e8449);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(39, 174, 96, 0.4);
+    }
+
+    @media (max-width: 768px) {
+        .question-item {
+            flex-direction: column;
+        }
+
+        .question-number {
+            min-width: auto;
+        }
+    }
+</style>
+{% endblock %}

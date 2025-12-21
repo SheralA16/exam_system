@@ -1,0 +1,488 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <img src="{% static 'images/imgizquierdo.png' %}" alt="USS" class="navbar-logo">
+        </div>
+        <div class="navbar-menu">
+            <a href="{% url 'accounts:dashboard' %}" class="btn-nav">Dashboard</a>
+            <div class="user-info">
+                <svg class="user-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+            </div>
+            <a href="{% url 'accounts:logout' %}" class="btn-logout">Cerrar Sesión</a>
+        </div>
+    </nav>
+
+    <div class="content">
+        <div class="page-header">
+            <div class="header-info">
+                <h1>Temas del Curso: {{ course.name }}</h1>
+                <p class="course-description">{{ course.description|default:"Administra los temas de este curso" }}</p>
+            </div>
+            <div class="header-actions">
+                <a href="{% url 'exams:course_list' %}" class="btn-secondary">← Volver a Cursos</a>
+                <a href="{% url 'exams:exam_create' course.id %}" class="btn-primary">+ Crear Tema</a>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="exams-grid">
+            {% for exam in exams %}
+                <div class="exam-card">
+                    {% if exam.image %}
+                        <img src="{{ exam.image.url }}" alt="{{ exam.title }}" class="exam-image">
+                    {% else %}
+                        <div class="exam-image-placeholder">
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                            </svg>
+                        </div>
+                    {% endif %}
+                    <div class="exam-content">
+                        <div class="exam-badge">{{ exam.subject }}</div>
+                        <h3>{{ exam.title }}</h3>
+                        <p>{{ exam.description|truncatewords:10|default:"Sin descripción" }}</p>
+
+                        <div class="exam-actions">
+                            <a href="{% url 'exams:question_manage' exam.id %}" class="btn-action btn-manage">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 11H3v2h6m-6 4h6v2H3m10 0h8v-2h-8m8-6v2h-8V9m8-4h-8v2h8M5 9h2V7H5m0-2v6m0-6H3v6"></path>
+                                </svg>
+                                Preguntas
+                            </a>
+                            <a href="{% url 'exams:exam_edit' exam.id %}" class="btn-action btn-edit">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                                Editar
+                            </a>
+                            <a href="{% url 'exams:exam_delete' exam.id %}" class="btn-action btn-delete" onclick="return confirm('¿Estás seguro de eliminar este tema?')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                                Eliminar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#bdc3c7" stroke-width="1.5">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    <h2>No hay temas creados</h2>
+                    <p>Comienza creando el primer tema para este curso</p>
+                    <a href="{% url 'exams:exam_create' course.id %}" class="btn-create-large">+ Crear Primer Tema</a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background: #f5f5f5;
+        overflow-y: auto !important;
+    }
+
+    .dashboard-container {
+        min-height: 100vh;
+    }
+
+    .navbar {
+        background: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .navbar-logo {
+        height: 50px;
+    }
+
+    .navbar-menu {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .btn-nav {
+        color: #2c3e50;
+        text-decoration: none;
+        padding: 8px 15px;
+        background: #f0f0f0;
+        border-radius: 4px;
+        transition: background 0.3s;
+        font-weight: 600;
+    }
+
+    .btn-nav:hover {
+        background: #e0e0e0;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .user-icon {
+        color: #2c3e50;
+    }
+
+    .user-name {
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 15px;
+    }
+
+    .btn-logout {
+        background: #e74c3c;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: background 0.3s;
+        font-weight: 600;
+    }
+
+    .btn-logout:hover {
+        background: #c0392b;
+    }
+
+    .content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    .page-header {
+        margin-bottom: 40px;
+    }
+
+    .header-info h1 {
+        color: #2c3e50;
+        margin: 0 0 10px 0;
+        font-size: 32px;
+    }
+
+    .course-description {
+        color: #7f8c8d;
+        font-size: 16px;
+        margin: 0 0 20px 0;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary, .btn-secondary {
+        display: inline-block;
+        padding: 12px 24px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background: linear-gradient(to right, #7ed321, #5cb811);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(to right, #6bc21b, #4a9a0f);
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background: #95a5a6;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #7f8c8d;
+    }
+
+    .alert {
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+    }
+
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .exams-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 25px;
+    }
+
+    .exam-card {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .exam-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+
+    .exam-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .exam-image-placeholder {
+        width: 100%;
+        height: 200px;
+        background: linear-gradient(135deg, #7ed321 0%, #5cb811 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .exam-content {
+        padding: 20px;
+    }
+
+    .exam-badge {
+        display: inline-block;
+        background: #3498db;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .exam-content h3 {
+        color: #2c3e50;
+        margin: 0 0 10px 0;
+        font-size: 20px;
+    }
+
+    .exam-content p {
+        color: #7f8c8d;
+        margin-bottom: 20px;
+        line-height: 1.5;
+        min-height: 48px;
+    }
+
+    .exam-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .btn-manage {
+        background: #3498db;
+        color: white;
+        flex: 1;
+    }
+
+    .btn-manage:hover {
+        background: #2980b9;
+    }
+
+    .btn-edit {
+        background: #f39c12;
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background: #e67e22;
+    }
+
+    .btn-delete {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background: #c0392b;
+    }
+
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 80px 20px;
+        background: white;
+        border-radius: 8px;
+    }
+
+    .empty-state svg {
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-state h2 {
+        color: #2c3e50;
+        margin: 0 0 10px 0;
+    }
+
+    .empty-state p {
+        color: #7f8c8d;
+        font-size: 16px;
+        margin-bottom: 30px;
+    }
+
+    .btn-create-large {
+        display: inline-block;
+        background: linear-gradient(to right, #7ed321, #5cb811);
+        color: white;
+        padding: 15px 40px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .btn-create-large:hover {
+        background: linear-gradient(to right, #6bc21b, #4a9a0f);
+        transform: translateY(-2px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .navbar {
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+        }
+
+        .navbar-logo {
+            height: 40px;
+        }
+
+        .navbar-menu {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .btn-nav, .btn-logout {
+            width: 100%;
+            text-align: center;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+        }
+
+        .course-description {
+            font-size: 14px;
+        }
+
+        .header-actions {
+            flex-direction: column;
+        }
+
+        .btn-primary, .btn-secondary {
+            width: 100%;
+            text-align: center;
+        }
+
+        .exams-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .exam-image, .exam-image-placeholder {
+            height: 150px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .navbar-logo {
+            height: 35px;
+        }
+
+        .content {
+            padding: 15px;
+        }
+
+        .page-header h1 {
+            font-size: 20px;
+        }
+
+        .exam-content {
+            padding: 15px;
+        }
+
+        .exam-content h3 {
+            font-size: 18px;
+        }
+
+        .exam-actions {
+            flex-direction: column;
+        }
+
+        .btn-action {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .empty-state {
+            padding: 60px 20px;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+        }
+    }
+</style>
+{% endblock %}
