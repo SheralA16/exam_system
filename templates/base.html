@@ -1,21 +1,26 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Sistema de Exámenes - USS{% endblock %}</title>
+    <title>{% block title %}Mis Cursos - USS{% endblock %}</title>
     {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/Logo uss.png' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_head %}{% endblock %}
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         html {
             overflow-y: auto !important;
             overflow-x: hidden !important;
         }
+
         body {
             overflow-y: auto !important;
             overflow-x: hidden !important;
@@ -25,8 +30,10 @@
     </style>
     {% block extra_css %}{% endblock %}
 </head>
+
 <body>
     {% block content %}{% endblock %}
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>

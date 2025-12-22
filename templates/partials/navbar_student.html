@@ -1,9 +1,10 @@
 {% load static %}
 <nav class="navbar">
-    <div class="navbar-brand">
-        <img src="{% static 'images/imgizquierdo.png' %}" alt="USS" class="navbar-logo">
-    </div>
-    <div class="navbar-menu">
+    <div class="navbar-container">
+        <div class="navbar-brand">
+            <img src="{% static 'images/imgizquierdo.png' %}" alt="USS" class="navbar-logo">
+        </div>
+        <div class="navbar-menu">
         <!-- Botón Mis Cursos -->
         <a href="{% url 'accounts:dashboard' %}" class="btn-mis-cursos">Mis cursos</a>
 
@@ -76,5 +77,6 @@
             </svg>
             <span class="notification-badge">3</span>
         </button>
+        </div>
     </div>
 </nav>

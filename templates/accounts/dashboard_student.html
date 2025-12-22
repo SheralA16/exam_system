@@ -3,18 +3,36 @@
 
 {% block title %}Mis Cursos - USS{% endblock %}
 
+{% block extra_head %}
+<link rel="icon" type="image/png" href="{% static 'images/Logo uss.png' %}">
+{% endblock %}
+
 {% block content %}
 <div class="dashboard-container">
     {% include 'partials/navbar_student.html' %}
 
     <div class="page-title-bar">
-        <h1>Mis Cursos</h1>
+        <div class="title-bar-container">
+            <button class="title-bar-btn">
+                <span>Soporte</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <button class="title-bar-btn">
+                <span>Recursos Educativos</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+        </div>
     </div>
 
     <!-- Vista general de curso -->
     <div class="course-overview">
         <div class="overview-container">
             <h2 class="overview-title">Vista general de curso</h2>
+            <div class="title-divider"></div>
             <div class="controls-bar">
                 <!-- Buscador -->
                 <div class="search-box">
@@ -113,13 +131,19 @@
 
     .navbar {
         background: white;
-        padding: 15px 30px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        padding: 15px 0;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         position: relative;
         z-index: 1000;
+    }
+
+    .navbar-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     .navbar-logo {
@@ -341,17 +365,48 @@
 
     .page-title-bar {
         background: linear-gradient(to right, #7ed321, #5cb811);
-        padding: 20px 30px;
+        padding: 0;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
-    .page-title-bar h1 {
-        color: white;
-        margin: 0;
-        font-size: 28px;
-        font-weight: 600;
+    .title-bar-container {
         max-width: 1200px;
         margin: 0 auto;
+        display: flex;
+        gap: 0;
+    }
+
+    .title-bar-btn {
+        background: transparent;
+        border: none;
+        color: #2c3e50;
+        padding: 20px 30px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+        border-bottom: 3px solid transparent;
+    }
+
+    .title-bar-btn:hover {
+        background: rgba(0, 0, 0, 0.1);
+        border-bottom: 3px solid #2c3e50;
+    }
+
+    .title-bar-btn span {
+        text-decoration: none;
+        transition: text-decoration 0.3s;
+    }
+
+    .title-bar-btn:hover span {
+        text-decoration: underline;
+    }
+
+    .title-bar-btn svg {
+        flex-shrink: 0;
     }
 
     /* Vista general de curso */
@@ -370,6 +425,13 @@
         color: #2c3e50;
         font-size: 18px;
         font-weight: 500;
+        margin: 0 0 10px 0;
+    }
+
+    .title-divider {
+        width: 100%;
+        height: 1px;
+        background: #d0d0d0;
         margin: 0 0 15px 0;
     }
 
