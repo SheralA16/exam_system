@@ -5,11 +5,22 @@
 <div class="dashboard-container">
     {% include 'partials/navbar_student.html' %}
 
-    <div class="content">
-        <div class="page-header">
-            <h1>Temas de: {{ course.name }}</h1>
+    <div class="page-title-bar">
+        <div class="title-section">
+            <h1>{{ course.name }}</h1>
+        </div>
+    </div>
+
+    <!-- Vista general del Tema -->
+    <div class="course-overview">
+        <div class="overview-container">
+            <h2 class="overview-title">Vista general del Tema</h2>
+            <div class="title-divider"></div>
             <p class="course-description">{{ course.description|default:"Explora los temas disponibles en este curso" }}</p>
         </div>
+    </div>
+
+    <div class="content">
 
         {% if messages %}
             {% for message in messages %}
@@ -65,13 +76,19 @@
 
     .navbar {
         background: white;
-        padding: 15px 30px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        padding: 15px 0;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         position: relative;
         z-index: 1000;
+    }
+
+    .navbar-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     .navbar-logo {
@@ -291,27 +308,61 @@
         color: #c0392b;
     }
 
-    .content {
+    .page-title-bar {
+        background: linear-gradient(to right, #7ed321, #5cb811);
+        padding: 20px 0;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .title-section {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 40px 20px;
+        padding: 0 40px;
     }
 
-    .page-header {
-        margin-bottom: 40px;
-        text-align: left;
+    .title-section h1 {
+        color: white;
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
     }
 
-    .page-header h1 {
+    /* Vista general del Tema */
+    .course-overview {
+        background: white;
+        padding: 20px 40px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .overview-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .overview-title {
         color: #2c3e50;
+        font-size: 18px;
+        font-weight: 500;
         margin: 0 0 10px 0;
-        font-size: 32px;
+    }
+
+    .title-divider {
+        width: 100%;
+        height: 1px;
+        background: #d0d0d0;
+        margin: 0 0 15px 0;
     }
 
     .course-description {
         color: #7f8c8d;
         font-size: 16px;
         margin: 0;
+    }
+
+    .content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
     }
 
     .alert {
