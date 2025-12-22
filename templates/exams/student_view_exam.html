@@ -3,22 +3,7 @@
 
 {% block content %}
 <div class="view-container">
-    <nav class="navbar">
-        <div class="navbar-brand">
-            <img src="{% static 'images/imgizquierdo.png' %}" alt="USS" class="navbar-logo">
-        </div>
-        <div class="navbar-menu">
-            <a href="{% url 'accounts:dashboard' %}" class="btn-nav">Mis Cursos</a>
-            <div class="user-info">
-                <svg class="user-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
-            </div>
-            <a href="{% url 'accounts:logout' %}" class="btn-logout">Cerrar Sesión</a>
-        </div>
-    </nav>
+    {% include 'partials/navbar_student.html' %}
 
     <div class="exam-header-bar">
         <div class="exam-header-content">
@@ -255,7 +240,9 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        position: relative;
+        z-index: 1000;
     }
 
     .navbar-logo {
@@ -265,53 +252,214 @@
     .navbar-menu {
         display: flex;
         align-items: center;
-        gap: 20px;
+        gap: 15px;
     }
 
-    .btn-nav {
-        background: #f0f0f0;
+    /* Botón Mis Cursos */
+    .btn-mis-cursos {
         color: #2c3e50;
         text-decoration: none;
-        padding: 8px 15px;
-        border-radius: 4px;
-        transition: background 0.3s;
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 600;
+        padding: 8px 12px;
+        transition: all 0.3s;
+        border-bottom: 2px solid transparent;
     }
 
-    .btn-nav:hover {
-        background: #e0e0e0;
+    .btn-mis-cursos:hover {
+        border-bottom: 2px solid #2c3e50;
     }
 
-    .user-info {
+    /* Iconos de Búsqueda y Notificación */
+    .icon-btn {
+        background: none;
+        border: none;
+        padding: 10px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #555;
+        transition: all 0.3s;
+        position: relative;
+    }
+
+    .icon-btn:hover {
+        background: #f0f0f0;
+        color: #7ed321;
+    }
+
+    .notification-btn {
+        position: relative;
+    }
+
+    .notification-badge {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        background: #e74c3c;
+        color: white;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 5px;
+        border-radius: 10px;
+        min-width: 16px;
+        text-align: center;
+    }
+
+    /* Avatar y Menú de Usuario */
+    .user-menu-container {
+        position: relative;
+    }
+
+    .user-avatar-btn {
+        background: none;
+        border: none;
         display: flex;
         align-items: center;
         gap: 8px;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 25px;
+        transition: background 0.3s;
     }
 
-    .user-icon {
-        color: #2c3e50;
+    .user-avatar-btn:hover {
+        background: #f0f0f0;
     }
 
-    .user-name {
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #d0d0d0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .avatar-initials {
+        color: #000000;
+        font-weight: 700;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .dropdown-arrow {
+        color: #555;
+        transition: transform 0.3s;
+    }
+
+    .user-avatar-btn:hover .dropdown-arrow {
+        color: #7ed321;
+    }
+
+    /* Dropdown Menu */
+    .user-dropdown {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        min-width: 280px;
+        z-index: 1001;
+        overflow: hidden;
+        animation: dropdownFadeIn 0.3s ease;
+    }
+
+    @keyframes dropdownFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .dropdown-header {
+        padding: 20px;
+        background: linear-gradient(135deg, #7ed321 0%, #5cb811 100%);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .user-avatar-large {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #d0d0d0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid white;
+    }
+
+    .avatar-initials-large {
+        font-size: 24px;
+        color: #000000;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .dropdown-user-info {
+        flex: 1;
+        color: white;
+    }
+
+    .dropdown-user-name {
+        margin: 0 0 4px 0;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .dropdown-user-email {
+        margin: 0;
+        font-size: 13px;
+        opacity: 0.9;
+    }
+
+    .dropdown-divider {
+        height: 1px;
+        background: #e0e0e0;
+        margin: 0;
+    }
+
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 20px;
         color: #2c3e50;
-        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s;
         font-size: 15px;
     }
 
-    .btn-logout {
-        background: #e74c3c;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 4px;
-        text-decoration: none;
-        transition: background 0.3s;
-        font-size: 14px;
-        font-weight: 600;
+    .dropdown-item:hover {
+        background: #f8f9fa;
+        color: #7ed321;
     }
 
-    .btn-logout:hover {
-        background: #c0392b;
+    .dropdown-item svg {
+        flex-shrink: 0;
+    }
+
+    .logout-item {
+        color: #e74c3c;
+    }
+
+    .logout-item:hover {
+        background: #fff5f5;
+        color: #c0392b;
     }
 
     .exam-header-bar {
@@ -1094,6 +1242,22 @@
 </style>
 
 <script>
+    // Toggle User Dropdown
+    function toggleUserDropdown() {
+        const dropdown = document.getElementById('userDropdown');
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // Cerrar dropdown al hacer click fuera
+    document.addEventListener('click', function (event) {
+        const userDropdown = document.getElementById('userDropdown');
+        const userAvatarBtn = document.querySelector('.user-avatar-btn');
+
+        if (userAvatarBtn && userDropdown && !userAvatarBtn.contains(event.target) && !userDropdown.contains(event.target)) {
+            userDropdown.style.display = 'none';
+        }
+    });
+
     function openImageModal(src) {
         var modal = document.getElementById("imageModal");
         var modalImg = document.getElementById("modalImage");
