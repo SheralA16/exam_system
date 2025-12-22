@@ -225,8 +225,60 @@
         padding: 0;
     }
 
+    /* Protección de contenido */
+    .questions-table,
+    .questions-table * {
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+    }
+
+    /* Watermark de seguridad */
+    .content::before {
+        content: "{{ user.get_full_name|default:user.username }} - {{ user.email|default:'Usuario' }}";
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 60px;
+        color: rgba(0, 0, 0, 0.05);
+        font-weight: bold;
+        pointer-events: none;
+        z-index: 999;
+        white-space: nowrap;
+        text-align: center;
+    }
+
+    /* Ocultar contenido al imprimir */
+    @media print {
+        .questions-table,
+        .search-container,
+        .pagination-container,
+        .scroll-btn {
+            display: none !important;
+        }
+
+        .content::before {
+            content: "DOCUMENTO NO AUTORIZADO PARA IMPRESIÓN - {{ user.get_full_name|default:user.username }}";
+            color: rgba(255, 0, 0, 0.3);
+            font-size: 80px;
+            z-index: 9999;
+        }
+
+        .content::after {
+            content: "Este contenido está protegido. Impresión no autorizada.";
+            display: block;
+            text-align: center;
+            font-size: 24px;
+            color: #e74c3c;
+            margin-top: 100px;
+        }
+    }
+
     .view-container {
         min-height: 100vh;
+        position: relative;
     }
 
     .navbar {
@@ -1322,6 +1374,71 @@
             behavior: 'smooth'
         });
     });
+
+    // ========================================
+    // PROTECCIÓN DE CONTENIDO - Nivel Básico
+    // ========================================
+
+    // Deshabilitar click derecho en la tabla de preguntas
+    const questionsTable = document.querySelector('.questions-table');
+    if (questionsTable) {
+        questionsTable.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+    }
+
+    // Deshabilitar atajos de teclado (Copiar, Pegar, Seleccionar todo, Imprimir)
+    document.addEventListener('keydown', function(e) {
+        // Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+A (Copiar, Cortar, Pegar, Seleccionar todo)
+        if (e.ctrlKey && (e.key === 'c' || e.key === 'x' || e.key === 'v' || e.key === 'a')) {
+            // Solo bloquear si está dentro de la tabla de preguntas
+            if (e.target.closest('.questions-table')) {
+                e.preventDefault();
+                return false;
+            }
+        }
+
+        // Ctrl+P (Imprimir)
+        if (e.ctrlKey && e.key === 'p') {
+            e.preventDefault();
+            alert('La impresión de este contenido está deshabilitada por motivos de seguridad.');
+            return false;
+        }
+
+        // Ctrl+S (Guardar)
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            return false;
+        }
+
+        // F12 (DevTools) - Solo advertencia
+        if (e.key === 'F12') {
+            console.warn('Las herramientas de desarrollo están desaconsejadas en esta página.');
+        }
+    });
+
+    // Deshabilitar copiar con mouse (drag)
+    if (questionsTable) {
+        questionsTable.addEventListener('copy', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        questionsTable.addEventListener('cut', function(e) {
+            e.preventDefault();
+            return false;
+        });
+    }
+
+    // Mensaje de advertencia al intentar imprimir
+    window.addEventListener('beforeprint', function() {
+        console.warn('Intento de impresión detectado.');
+    });
+
+    // ========================================
+    // FIN PROTECCIÓN DE CONTENIDO
+    // ========================================
 
     // Búsqueda en tiempo real de preguntas
     const questionSearchInput = document.getElementById('questionSearchInput');
