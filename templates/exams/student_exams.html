@@ -638,10 +638,8 @@
 
     /* Responsive */
     @media (max-width: 768px) {
-        .navbar {
-            flex-direction: column;
-            gap: 10px;
-            padding: 15px;
+        .navbar-container {
+            padding: 0 20px;
         }
 
         .navbar-logo {
@@ -649,18 +647,30 @@
         }
 
         .navbar-menu {
-            flex-direction: column;
-            width: 100%;
             gap: 10px;
         }
 
-        .btn-nav, .btn-logout {
-            width: 100%;
-            text-align: center;
+        .user-dropdown {
+            right: -10px;
+            min-width: 260px;
+        }
+
+        .icon-btn {
+            padding: 8px;
         }
 
         .content {
             padding: 20px;
+        }
+
+        .controls-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-box,
+        .sort-box {
+            flex: 1 1 auto;
         }
 
         .page-header h1 {
@@ -682,6 +692,10 @@
     }
 
     @media (max-width: 480px) {
+        .navbar-container {
+            padding: 0 15px;
+        }
+
         .navbar-logo {
             height: 35px;
         }
@@ -719,6 +733,8 @@
 </style>
 
 <script>
+    let currentView = 'card'; // Por defecto en vista tarjeta
+
     // Toggle User Dropdown
     function toggleUserDropdown() {
         const dropdown = document.getElementById('userDropdown');
@@ -727,12 +743,108 @@
 
     // Cerrar dropdown al hacer click fuera
     document.addEventListener('click', function (event) {
+        const viewDropdown = document.getElementById('viewDropdown');
+        const viewToggleBtn = document.getElementById('viewToggleBtn');
         const userDropdown = document.getElementById('userDropdown');
         const userAvatarBtn = document.querySelector('.user-avatar-btn');
+
+        if (viewToggleBtn && viewDropdown && !viewToggleBtn.contains(event.target) && !viewDropdown.contains(event.target)) {
+            viewDropdown.style.display = 'none';
+        }
 
         if (userAvatarBtn && userDropdown && !userAvatarBtn.contains(event.target) && !userDropdown.contains(event.target)) {
             userDropdown.style.display = 'none';
         }
+    });
+
+    // Toggle vista dropdown
+    document.getElementById('viewToggleBtn')?.addEventListener('click', function() {
+        const dropdown = document.getElementById('viewDropdown');
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Cambiar vista
+    function setView(view) {
+        const container = document.querySelector('.exams-grid');
+        const checkCard = document.getElementById('checkCard');
+        const checkList = document.getElementById('checkList');
+        const viewText = document.getElementById('viewToggleText');
+        const dropdown = document.getElementById('viewDropdown');
+
+        if (view === 'card') {
+            container.classList.remove('list-view');
+            checkCard.style.display = 'block';
+            checkList.style.display = 'none';
+            viewText.textContent = 'Tarjeta';
+            currentView = 'card';
+        } else {
+            container.classList.add('list-view');
+            checkCard.style.display = 'none';
+            checkList.style.display = 'block';
+            viewText.textContent = 'Lista';
+            currentView = 'list';
+        }
+
+        dropdown.style.display = 'none';
+    }
+
+    // Filtrar temas (búsqueda)
+    function filterExams() {
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        const filter = searchInput.value.toLowerCase();
+        const cards = document.querySelectorAll('.exam-card');
+
+        // Mostrar/ocultar botón de limpiar
+        clearBtn.style.display = filter ? 'flex' : 'none';
+
+        cards.forEach(card => {
+            const title = card.querySelector('h3').textContent.toLowerCase();
+            const description = card.querySelector('p').textContent.toLowerCase();
+            if (title.includes(filter) || description.includes(filter)) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    // Limpiar búsqueda
+    function clearSearch() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('clearSearch').style.display = 'none';
+        filterExams();
+    }
+
+    // Ordenar temas
+    function sortExams() {
+        const container = document.querySelector('.exams-grid');
+        const cards = Array.from(container.querySelectorAll('.exam-card'));
+        const sortValue = document.getElementById('sortSelect').value;
+
+        cards.sort((a, b) => {
+            const nameA = a.querySelector('h3').textContent.toLowerCase();
+            const nameB = b.querySelector('h3').textContent.toLowerCase();
+
+            if (sortValue === 'name-asc') {
+                return nameA.localeCompare(nameB);
+            } else {
+                return nameB.localeCompare(nameA);
+            }
+        });
+
+        // Reordenar
+        cards.forEach(card => container.appendChild(card));
+    }
+
+    // Event listeners
+    document.getElementById('searchInput')?.addEventListener('input', filterExams);
+    document.getElementById('clearSearch')?.addEventListener('click', clearSearch);
+    document.getElementById('sortSelect')?.addEventListener('change', sortExams);
+
+    // Inicializar vista por defecto
+    window.addEventListener('DOMContentLoaded', function() {
+        setView('card');
     });
 </script>
 {% endblock %}

@@ -1009,10 +1009,8 @@
         .exam-details {
             padding: 20px;
         }
-        .navbar {
-            flex-direction: column;
-            gap: 10px;
-            padding: 15px;
+        .navbar-container {
+            padding: 0 20px;
         }
 
         .navbar-logo {
@@ -1020,19 +1018,16 @@
         }
 
         .navbar-menu {
-            flex-direction: column;
-            width: 100%;
             gap: 10px;
         }
 
-        .user-info {
-            justify-content: center;
+        .user-dropdown {
+            right: -10px;
+            min-width: 260px;
         }
 
-        .btn-nav,
-        .btn-logout {
-            width: 100%;
-            text-align: center;
+        .icon-btn {
+            padding: 8px;
         }
 
         .content {
@@ -1115,6 +1110,10 @@
     }
 
     @media (max-width: 480px) {
+        .navbar-container {
+            padding: 0 15px;
+        }
+
         .navbar-logo {
             height: 35px;
         }
