@@ -5,22 +5,62 @@
 <div class="dashboard-container">
     {% include 'partials/navbar_student.html' %}
 
-    <div class="page-title-bar">
-        <div class="title-section">
-            <h1>{{ course.name }}</h1>
-        </div>
-    </div>
-
-    <!-- Vista general del Tema -->
-    <div class="course-overview">
-        <div class="overview-container">
-            <h2 class="overview-title">Vista general del Tema</h2>
-            <div class="title-divider"></div>
+    <div class="content">
+        <div class="page-header">
+            <h1>Temas de: {{ course.name }}</h1>
             <p class="course-description">{{ course.description|default:"Explora los temas disponibles en este curso" }}</p>
         </div>
-    </div>
 
-    <div class="content">
+        <!-- Vista general del Tema -->
+        <div class="theme-overview">
+            <h2 class="theme-overview-title">Vista general del Tema</h2>
+            <div class="theme-divider"></div>
+
+            <div class="controls-bar">
+                <!-- Buscador -->
+                <div class="search-box">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Buscar">
+                    <button class="clear-search" id="clearSearch" style="display: none;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Ordenar -->
+                <div class="sort-box">
+                    <select id="sortSelect" class="sort-select">
+                        <option value="name-asc">Ordenar por nombre del tema</option>
+                        <option value="name-desc">Nombre (Z-A)</option>
+                    </select>
+                </div>
+
+                <!-- Toggle Vista -->
+                <div class="view-toggle-container">
+                    <button class="view-toggle-btn" id="viewToggleBtn">
+                        <span id="viewToggleText">Tarjeta</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="view-dropdown" id="viewDropdown" style="display: none;">
+                        <div class="view-option" onclick="setView('card')">
+                            <span>Tarjeta</span>
+                            <svg class="check-icon" id="checkCard" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                        <div class="view-option" onclick="setView('list')">
+                            <span>Lista</span>
+                            <svg class="check-icon" id="checkList" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         {% if messages %}
             {% for message in messages %}
@@ -308,61 +348,173 @@
         color: #c0392b;
     }
 
-    .page-title-bar {
-        background: linear-gradient(to right, #7ed321, #5cb811);
-        padding: 20px 0;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    .title-section {
+    .content {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 0 40px;
+        padding: 40px 40px;
     }
 
-    .title-section h1 {
-        color: white;
-        margin: 0;
-        font-size: 28px;
+    .page-header {
+        margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+        color: #2c3e50;
+        margin: 0 0 10px 0;
+        font-size: 32px;
         font-weight: 600;
     }
 
+    .course-description {
+        color: #7f8c8d;
+        font-size: 16px;
+        margin: 0 0 20px 0;
+    }
+
     /* Vista general del Tema */
-    .course-overview {
-        background: white;
-        padding: 20px 40px;
-        border-bottom: 1px solid #e0e0e0;
+    .theme-overview {
+        margin-bottom: 30px;
     }
 
-    .overview-container {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    .overview-title {
+    .theme-overview-title {
         color: #2c3e50;
         font-size: 18px;
         font-weight: 500;
         margin: 0 0 10px 0;
     }
 
-    .title-divider {
+    .theme-divider {
         width: 100%;
         height: 1px;
         background: #d0d0d0;
         margin: 0 0 15px 0;
     }
 
-    .course-description {
-        color: #7f8c8d;
-        font-size: 16px;
-        margin: 0;
+    .controls-bar {
+        display: flex;
+        gap: 15px;
+        align-items: center;
     }
 
-    .content {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 40px 20px;
+    /* Buscador */
+    .search-box {
+        position: relative;
+        flex: 0 0 280px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 10px 35px 10px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #7ed321;
+        transition: border-color 0.3s;
+    }
+
+    .search-input::placeholder {
+        color: #7ed321;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #7ed321;
+    }
+
+    .clear-search {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        color: #95a5a6;
+    }
+
+    .clear-search:hover {
+        color: #e74c3c;
+    }
+
+    /* Ordenar */
+    .sort-box {
+        flex: 0 0 300px;
+    }
+
+    .sort-select {
+        width: 100%;
+        padding: 10px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        background: white;
+        cursor: pointer;
+        transition: border-color 0.3s;
+    }
+
+    .sort-select:focus {
+        outline: none;
+        border-color: #7ed321;
+    }
+
+    /* Toggle Vista */
+    .view-toggle-container {
+        position: relative;
+    }
+
+    .view-toggle-btn {
+        background: #7ed321;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+
+    .view-toggle-btn:hover {
+        background: #6bc21b;
+    }
+
+    .view-dropdown {
+        position: absolute;
+        top: calc(100% + 5px);
+        right: 0;
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        min-width: 150px;
+        z-index: 100;
+    }
+
+    .view-option {
+        padding: 12px 15px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.2s;
+    }
+
+    .view-option:hover {
+        background: #f8f9fa;
+    }
+
+    .view-option:first-child {
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .check-icon {
+        color: #7ed321;
     }
 
     .alert {
