@@ -53,29 +53,24 @@
 
             <!-- Buscador -->
             <div class="search-container">
-                <form method="get" class="search-form">
+                <div class="search-form">
                     <div class="search-input-wrapper">
                         <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="8"></circle>
                             <path d="m21 21-4.35-4.35"></path>
                         </svg>
-                        <input type="text" name="search" class="search-input" placeholder="Buscar por texto de pregunta..." value="{{ search_query }}">
-                        {% if search_query %}
-                            <a href="{% url 'exams:student_take_exam' exam.id %}" class="clear-search" title="Limpiar búsqueda">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                            </a>
-                        {% endif %}
+                        <input type="text" id="questionSearchInput" class="search-input" placeholder="Buscar por texto de pregunta...">
+                        <button class="clear-search-btn" id="clearQuestionSearch" style="display: none;" title="Limpiar búsqueda">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
                     </div>
-                    <button type="submit" class="search-button">Buscar</button>
-                </form>
-                {% if search_query %}
-                    <div class="search-results-info">
-                        Mostrando {{ total_questions }} resultado{{ total_questions|pluralize }} para "<strong>{{ search_query }}</strong>"
-                    </div>
-                {% endif %}
+                </div>
+                <div class="search-results-info" id="searchResultsInfo" style="display: none;">
+                    Mostrando <span id="resultCount">0</span> resultado(s)
+                </div>
             </div>
 
             {% if questions %}
@@ -778,7 +773,8 @@
         box-shadow: 0 0 0 3px rgba(126, 211, 33, 0.1);
     }
 
-    .clear-search {
+    .clear-search,
+    .clear-search-btn {
         position: absolute;
         right: 15px;
         color: #95a5a6;
@@ -787,9 +783,12 @@
         display: flex;
         align-items: center;
         padding: 4px;
+        background: none;
+        border: none;
     }
 
-    .clear-search:hover {
+    .clear-search:hover,
+    .clear-search-btn:hover {
         color: #e74c3c;
     }
 
@@ -1323,5 +1322,49 @@
             behavior: 'smooth'
         });
     });
+
+    // Búsqueda en tiempo real de preguntas
+    const questionSearchInput = document.getElementById('questionSearchInput');
+    const clearQuestionSearch = document.getElementById('clearQuestionSearch');
+    const searchResultsInfo = document.getElementById('searchResultsInfo');
+    const resultCount = document.getElementById('resultCount');
+
+    if (questionSearchInput) {
+        questionSearchInput.addEventListener('input', function() {
+            const filter = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.questions-table tbody tr');
+            let visibleCount = 0;
+
+            // Mostrar/ocultar botón de limpiar
+            clearQuestionSearch.style.display = filter ? 'flex' : 'none';
+
+            rows.forEach(row => {
+                const questionText = row.querySelector('td:first-child .cell-content')?.textContent.toLowerCase() || '';
+                const answerText = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
+                const descriptionText = row.querySelector('td:nth-child(3)')?.textContent.toLowerCase() || '';
+
+                if (questionText.includes(filter) || answerText.includes(filter) || descriptionText.includes(filter)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Mostrar información de resultados
+            if (filter) {
+                resultCount.textContent = visibleCount;
+                searchResultsInfo.style.display = 'block';
+            } else {
+                searchResultsInfo.style.display = 'none';
+            }
+        });
+
+        // Limpiar búsqueda
+        clearQuestionSearch.addEventListener('click', function() {
+            questionSearchInput.value = '';
+            questionSearchInput.dispatchEvent(new Event('input'));
+        });
+    }
 </script>
 {% endblock %}
