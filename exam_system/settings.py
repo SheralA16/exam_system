@@ -23,10 +23,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-*&0+67qt)u@9m7xi8f(n_xv0fxgi57ib_=km1@#uv0_dsp1ei3')
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-dev-key-CHANGE-IN-PRODUCTION')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'cloudinary_storage',
     'cloudinary',
+    'axes',
     'accounts',
     'exams',
 ]
@@ -55,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'axes.middleware.AxesMiddleware',  # Protección contra brute force
 ]
 
 ROOT_URLCONF = 'exam_system.urls'
@@ -91,11 +93,11 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'exam_system_db',
-            'USER': 'postgres_exam_system',
-            'PASSWORD': 'postgres_exam_system',
-            'HOST': 'localhost',
-            'PORT': '5432',
+            'NAME': config('DB_NAME', default='exam_system_db'),
+            'USER': config('DB_USER', default='postgres_exam_system'),
+            'PASSWORD': config('DB_PASSWORD', default='postgres_exam_system'),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='5432'),
         }
     }
 
@@ -188,3 +190,29 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
+
+# Session Security Settings
+SESSION_COOKIE_AGE = 3600  # 1 hora de inactividad
+SESSION_SAVE_EVERY_REQUEST = True  # Renovar sesión en cada request
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Expirar al cerrar navegador
+SESSION_COOKIE_HTTPONLY = True  # No accesible desde JavaScript
+SESSION_COOKIE_SAMESITE = 'Lax'  # Protección CSRF adicional
+
+# Django Axes Configuration (Protección contra Brute Force)
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',  # AxesStandaloneBackend debe ir primero
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# Configuración de Axes
+AXES_FAILURE_LIMIT = 5  # Bloquear después de 5 intentos fallidos
+AXES_COOLOFF_TIME = 1  # Bloquear por 1 hora (en horas)
+AXES_LOCK_OUT_AT_FAILURE = True  # Activar bloqueo
+AXES_RESET_ON_SUCCESS = True  # Resetear contador al login exitoso
+AXES_LOCKOUT_TEMPLATE = None  # Usar página de error por defecto
+AXES_LOCKOUT_PARAMETERS = [['username'], ['ip_address']]  # Bloquear por usuario e IP
+AXES_VERBOSE = True  # Logging detallado
+
+# File Upload Security
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5 MB máximo en memoria
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5 MB máximo para datos POST

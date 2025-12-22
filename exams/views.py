@@ -4,6 +4,7 @@ from django.contrib import messages
 from .models import Course, Exam, Question, Answer
 from django.http import JsonResponse
 from django.db import models
+from django_ratelimit.decorators import ratelimit
 
 
 # ============ CURSO VIEWS ============
@@ -171,6 +172,7 @@ def exam_delete(request, pk):
 
 # ============ QUESTION VIEWS ============
 @login_required
+@ratelimit(key='user', rate='100/h', method='POST', block=True)
 def question_manage(request, exam_id):
     from django.core.paginator import Paginator
 

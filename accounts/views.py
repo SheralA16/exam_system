@@ -3,9 +3,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django_ratelimit.decorators import ratelimit
 
 User = get_user_model()
 
+@ratelimit(key='ip', rate='10/m', method='POST', block=True)
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('accounts:dashboard')
@@ -118,6 +120,7 @@ def user_list(request):
 
 
 @login_required
+@ratelimit(key='user', rate='20/h', method='POST', block=True)
 def create_user(request):
     if not request.user.is_admin():
         messages.error(request, 'No tienes permisos para acceder a esta página.')

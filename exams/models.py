@@ -1,11 +1,30 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
+from django.core.exceptions import ValidationError
+
+
+def validate_file_size(file):
+    """Valida que el archivo no exceda 5MB"""
+    max_size_mb = 5
+    if file.size > max_size_mb * 1024 * 1024:
+        raise ValidationError(f'El archivo no debe exceder {max_size_mb}MB. Tamaño actual: {file.size / (1024 * 1024):.2f}MB')
+    return file
 
 
 class Course(models.Model):
     name = models.CharField(max_length=200, verbose_name='Nombre del Curso')
     description = models.TextField(verbose_name='Descripción', blank=True, null=True)
-    image = models.ImageField(upload_to='courses/', verbose_name='Imagen del Curso', blank=True, null=True)
+    image = models.ImageField(
+        upload_to='courses/',
+        verbose_name='Imagen del Curso',
+        blank=True,
+        null=True,
+        validators=[
+            FileExtensionValidator(['jpg', 'jpeg', 'png', 'gif', 'webp']),
+            validate_file_size
+        ]
+    )
     is_active = models.BooleanField(default=True, verbose_name='Activo')
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -36,8 +55,26 @@ class Exam(models.Model):
     )
     title = models.CharField(max_length=200, verbose_name='Título del Tema')
     description = models.TextField(verbose_name='Descripción', blank=True, null=True)
-    image = models.ImageField(upload_to='exams/', verbose_name='Imagen del Tema', blank=True, null=True)
-    pdf_file = models.FileField(upload_to='exams/pdfs/', verbose_name='Archivo PDF', blank=True, null=True)
+    image = models.ImageField(
+        upload_to='exams/',
+        verbose_name='Imagen del Tema',
+        blank=True,
+        null=True,
+        validators=[
+            FileExtensionValidator(['jpg', 'jpeg', 'png', 'gif', 'webp']),
+            validate_file_size
+        ]
+    )
+    pdf_file = models.FileField(
+        upload_to='exams/pdfs/',
+        verbose_name='Archivo PDF',
+        blank=True,
+        null=True,
+        validators=[
+            FileExtensionValidator(['pdf']),
+            validate_file_size
+        ]
+    )
     subject = models.CharField(max_length=100, verbose_name='Materia')
     total_marks = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='Puntuación Total', default=0, null=True, blank=True)
     passing_marks = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='Puntuación Mínima', default=0, null=True, blank=True)
@@ -143,7 +180,16 @@ class Question(models.Model):
         verbose_name='Examen'
     )
     question_text = models.TextField(verbose_name='Pregunta')
-    image = models.ImageField(upload_to='questions/', verbose_name='Imagen', blank=True, null=True)
+    image = models.ImageField(
+        upload_to='questions/',
+        verbose_name='Imagen',
+        blank=True,
+        null=True,
+        validators=[
+            FileExtensionValidator(['jpg', 'jpeg', 'png', 'gif', 'webp']),
+            validate_file_size
+        ]
+    )
     question_type = models.CharField(
         max_length=20,
         choices=QUESTION_TYPE_CHOICES,
