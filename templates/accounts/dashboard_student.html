@@ -10,15 +10,72 @@
             <img src="{% static 'images/imgizquierdo.png' %}" alt="USS" class="navbar-logo">
         </div>
         <div class="navbar-menu">
-            <div class="user-info">
-                <svg class="user-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
+            <!-- Icono de Búsqueda -->
+            <button class="icon-btn" title="Buscar" aria-label="Buscar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
                 </svg>
-                <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+            </button>
+
+            <!-- Icono de Notificaciones -->
+            <button class="icon-btn notification-btn" title="Notificaciones" aria-label="Notificaciones">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <span class="notification-badge">3</span>
+            </button>
+
+            <!-- Avatar con Dropdown -->
+            <div class="user-menu-container">
+                <button class="user-avatar-btn" onclick="toggleUserDropdown()" aria-label="Menú de usuario">
+                    <div class="user-avatar">
+                        {% if user.first_name and user.last_name %}
+                            <span class="avatar-initials">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</span>
+                        {% else %}
+                            <span class="avatar-initials">{{ user.username|slice:":2"|upper }}</span>
+                        {% endif %}
+                    </div>
+                    <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div class="user-dropdown" id="userDropdown" style="display: none;">
+                    <div class="dropdown-header">
+                        <div class="user-avatar-large">
+                            {% if user.first_name and user.last_name %}
+                                <span class="avatar-initials">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</span>
+                            {% else %}
+                                <span class="avatar-initials">{{ user.username|slice:":2"|upper }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="dropdown-user-info">
+                            <p class="dropdown-user-name">{{ user.get_full_name|default:user.username }}</p>
+                            <p class="dropdown-user-email">{{ user.email|default:"Sin email" }}</p>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span>Perfil</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{% url 'accounts:logout' %}" class="dropdown-item logout-item">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Cerrar Sesión</span>
+                    </a>
+                </div>
             </div>
-            <a href="{% url 'accounts:logout' %}" class="btn-logout">Cerrar Sesión</a>
         </div>
     </nav>
 
@@ -128,6 +185,8 @@
         justify-content: space-between;
         align-items: center;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        position: relative;
+        z-index: 1000;
     }
 
     .navbar-logo {
@@ -137,37 +196,195 @@
     .navbar-menu {
         display: flex;
         align-items: center;
-        gap: 20px;
+        gap: 15px;
     }
 
-    .user-info {
+    /* Iconos de Búsqueda y Notificación */
+    .icon-btn {
+        background: none;
+        border: none;
+        padding: 10px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #555;
+        transition: all 0.3s;
+        position: relative;
+    }
+
+    .icon-btn:hover {
+        background: #f0f0f0;
+        color: #7ed321;
+    }
+
+    .notification-btn {
+        position: relative;
+    }
+
+    .notification-badge {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        background: #e74c3c;
+        color: white;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 5px;
+        border-radius: 10px;
+        min-width: 16px;
+        text-align: center;
+    }
+
+    /* Avatar y Menú de Usuario */
+    .user-menu-container {
+        position: relative;
+    }
+
+    .user-avatar-btn {
+        background: none;
+        border: none;
         display: flex;
         align-items: center;
         gap: 8px;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 25px;
+        transition: background 0.3s;
     }
 
-    .user-icon {
-        color: #2c3e50;
+    .user-avatar-btn:hover {
+        background: #f0f0f0;
     }
 
-    .user-name {
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #7ed321 0%, #5cb811 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .avatar-initials {
+        color: white;
+        font-weight: 700;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .dropdown-arrow {
+        color: #555;
+        transition: transform 0.3s;
+    }
+
+    .user-avatar-btn:hover .dropdown-arrow {
+        color: #7ed321;
+    }
+
+    /* Dropdown Menu */
+    .user-dropdown {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        min-width: 280px;
+        z-index: 1001;
+        overflow: hidden;
+        animation: dropdownFadeIn 0.3s ease;
+    }
+
+    @keyframes dropdownFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .dropdown-header {
+        padding: 20px;
+        background: linear-gradient(135deg, #7ed321 0%, #5cb811 100%);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .user-avatar-large {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid white;
+    }
+
+    .user-avatar-large .avatar-initials {
+        font-size: 24px;
+        color: white;
+    }
+
+    .dropdown-user-info {
+        flex: 1;
+        color: white;
+    }
+
+    .dropdown-user-name {
+        margin: 0 0 4px 0;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .dropdown-user-email {
+        margin: 0;
+        font-size: 13px;
+        opacity: 0.9;
+    }
+
+    .dropdown-divider {
+        height: 1px;
+        background: #e0e0e0;
+        margin: 0;
+    }
+
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 20px;
         color: #2c3e50;
-        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s;
         font-size: 15px;
     }
 
-    .btn-logout {
-        background-color: #e74c3c;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 4px;
-        text-decoration: none;
-        transition: background-color 0.3s;
-        font-weight: 600;
+    .dropdown-item:hover {
+        background: #f8f9fa;
+        color: #7ed321;
     }
 
-    .btn-logout:hover {
-        background-color: #c0392b;
+    .dropdown-item svg {
+        flex-shrink: 0;
+    }
+
+    .logout-item {
+        color: #e74c3c;
+    }
+
+    .logout-item:hover {
+        background: #fff5f5;
+        color: #c0392b;
     }
 
     .page-title-bar {
@@ -497,9 +714,7 @@
     /* Responsive */
     @media (max-width: 768px) {
         .navbar {
-            flex-direction: column;
-            gap: 10px;
-            padding: 15px;
+            padding: 15px 20px;
         }
 
         .navbar-logo {
@@ -507,10 +722,16 @@
         }
 
         .navbar-menu {
-            flex-direction: column;
-            width: 100%;
-            text-align: center;
             gap: 10px;
+        }
+
+        .user-dropdown {
+            right: -10px;
+            min-width: 260px;
+        }
+
+        .icon-btn {
+            padding: 8px;
         }
 
         .page-title-bar {
@@ -596,13 +817,25 @@
 
     // Cerrar dropdown al hacer click fuera
     document.addEventListener('click', function(event) {
-        const dropdown = document.getElementById('viewDropdown');
-        const toggleBtn = document.getElementById('viewToggleBtn');
+        const viewDropdown = document.getElementById('viewDropdown');
+        const viewToggleBtn = document.getElementById('viewToggleBtn');
+        const userDropdown = document.getElementById('userDropdown');
+        const userAvatarBtn = document.querySelector('.user-avatar-btn');
 
-        if (!toggleBtn.contains(event.target) && !dropdown.contains(event.target)) {
-            dropdown.style.display = 'none';
+        if (viewToggleBtn && viewDropdown && !viewToggleBtn.contains(event.target) && !viewDropdown.contains(event.target)) {
+            viewDropdown.style.display = 'none';
+        }
+
+        if (userAvatarBtn && userDropdown && !userAvatarBtn.contains(event.target) && !userDropdown.contains(event.target)) {
+            userDropdown.style.display = 'none';
         }
     });
+
+    // Toggle User Dropdown
+    function toggleUserDropdown() {
+        const dropdown = document.getElementById('userDropdown');
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
 
     // Toggle dropdown
     function toggleViewDropdown() {
