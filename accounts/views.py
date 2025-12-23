@@ -407,3 +407,24 @@ def reset_user_login_count(request, user_id):
             messages.error(request, 'Solo se puede resetear el contador de estudiantes.')
 
     return redirect('accounts:user_list')
+
+
+@login_required
+def delete_reactivation_request(request, request_id):
+    """Vista para que el admin elimine una solicitud de reactivación procesada"""
+    if not request.user.is_admin():
+        messages.error(request, 'No tienes permisos para realizar esta acción.')
+        return redirect('accounts:dashboard')
+
+    if request.method == 'POST':
+        reactivation_request = get_object_or_404(LoginReactivationRequest, pk=request_id)
+
+        # Solo permitir eliminar solicitudes procesadas (no pendientes)
+        if reactivation_request.status == 'pending':
+            messages.error(request, 'No se pueden eliminar solicitudes pendientes. Primero debes aprobarlas o rechazarlas.')
+        else:
+            username = reactivation_request.user.username
+            reactivation_request.delete()
+            messages.success(request, f'Solicitud de "{username}" eliminada exitosamente.')
+
+    return redirect('accounts:reactivation_requests')

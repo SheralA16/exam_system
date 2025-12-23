@@ -56,7 +56,8 @@ class User(AbstractUser):
             self.login_count += 1
             self.last_login_attempt = timezone.now()
 
-            if self.login_count >= self.max_logins_allowed:
+            # Deshabilitar solo cuando EXCEDE el límite (3er intento con max=2)
+            if self.login_count > self.max_logins_allowed:
                 self.is_active = False
                 self.is_disabled_by_login_limit = True
 

@@ -131,39 +131,59 @@
                 Historial de Solicitudes
             </h2>
 
-            <div class="requests-grid">
-                {% for request in processed_requests %}
-                <div class="request-card {{ request.status }}">
-                    <div class="card-header">
-                        <div class="user-info">
-                            <div class="user-avatar">{{ request.user.username|slice:":1"|upper }}</div>
-                            <div>
-                                <h3>{{ request.user.get_full_name|default:request.user.username }}</h3>
-                                <p class="username">@{{ request.user.username }}</p>
-                            </div>
-                        </div>
-                        <span class="status-badge {{ request.status }}">{{ request.get_status_display }}</span>
-                    </div>
-
-                    <div class="card-body">
-                        <div class="info-row">
-                            <span class="label">Procesado por:</span>
-                            <span class="value">{{ request.processed_by.username|default:"Sistema" }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="label">Fecha de procesamiento:</span>
-                            <span class="value">{{ request.processed_at|date:"d/m/Y H:i" }}</span>
-                        </div>
-
-                        {% if request.admin_response %}
-                        <div class="message-section">
-                            <span class="label">Respuesta del admin:</span>
-                            <p class="message-text">{{ request.admin_response }}</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
+            <div class="history-table-container">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Estado</th>
+                            <th>Procesado por</th>
+                            <th>Fecha de Procesamiento</th>
+                            <th>Respuesta</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in processed_requests %}
+                        <tr class="row-{{ request.status }}">
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar-small">{{ request.user.username|slice:":1"|upper }}</div>
+                                    <div>
+                                        <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+                                        <br><small class="text-muted">@{{ request.user.username }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="status-badge {{ request.status }}">{{ request.get_status_display }}</span>
+                            </td>
+                            <td>{{ request.processed_by.username|default:"Sistema" }}</td>
+                            <td>{{ request.processed_at|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if request.admin_response %}
+                                    <span class="response-preview" title="{{ request.admin_response }}">
+                                        {{ request.admin_response|truncatewords:8 }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="post" action="{% url 'accounts:delete_reactivation_request' request.id %}" style="display: inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta solicitud? Esta acción no se puede deshacer.');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-delete-small" title="Eliminar solicitud">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
         {% endif %}
@@ -564,6 +584,113 @@
     .empty-state p {
         margin: 0;
         font-size: 16px;
+    }
+
+    /* Estilos de la tabla de historial */
+    .history-table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .history-table thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .history-table th {
+        padding: 16px 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .history-table tbody tr {
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.2s;
+    }
+
+    .history-table tbody tr:hover {
+        background: #f9f9f9;
+    }
+
+    .history-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .history-table td {
+        padding: 16px 12px;
+        vertical-align: middle;
+        font-size: 14px;
+        color: #555;
+    }
+
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .user-avatar-small {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #7ed321, #5cb811);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+
+    .text-muted {
+        color: #999;
+        font-size: 12px;
+    }
+
+    .response-preview {
+        display: block;
+        max-width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: help;
+    }
+
+    .row-approved {
+        background: #f0f9ff;
+    }
+
+    .row-rejected {
+        background: #fff5f5;
+    }
+
+    .btn-delete-small {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .btn-delete-small:hover {
+        background: #c0392b;
+        transform: scale(1.1);
     }
 
     /* Estilos del Modal */
