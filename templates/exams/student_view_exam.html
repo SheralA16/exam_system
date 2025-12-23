@@ -253,7 +253,7 @@
 
     .watermark-item {
         position: absolute;
-        font-size: 1.2rem;  /* Texto mediano para cuadrícula */
+        font-size: 0.9rem;  /* Reducido para evitar solapamiento */
         color: rgba(0, 0, 0, 0.08);
         font-weight: 700;
         letter-spacing: 0.05em;
@@ -262,6 +262,7 @@
         user-select: none;
         pointer-events: none;
         transform: rotate(-45deg);  /* Diagonal para mejor cobertura */
+        opacity: 0.9;
     }
 
 
@@ -1582,27 +1583,23 @@
 
         const watermarkText = "{{ user.get_full_name|default:user.username }} - {{ user.email|default:'Usuario' }}";
 
-        // Aumentar densidad significativamente para cobertura total
-        let rows, columns, spacing;
+        // Densidad optimizada para cobertura sin solapamiento
+        let rows, columns;
         const screenWidth = window.innerWidth;
         const screenHeight = window.innerHeight;
 
         if (screenWidth > 1200) {
-            columns = 8;   // 8 columnas (era 5)
-            rows = 15;     // 15 filas (era 8)
-            spacing = 150; // Espaciado en píxeles
+            columns = 7;   // 7 columnas (reducido de 8)
+            rows = 12;     // 12 filas (reducido de 15)
         } else if (screenWidth > 768) {
-            columns = 6;   // 6 columnas (era 4)
-            rows = 12;     // 12 filas (era 6)
-            spacing = 120;
+            columns = 6;   // 6 columnas
+            rows = 10;     // 10 filas (reducido de 12)
         } else if (screenWidth > 480) {
-            columns = 5;   // 5 columnas (era 3)
-            rows = 10;     // 10 filas (era 5)
-            spacing = 100;
+            columns = 5;   // 5 columnas
+            rows = 8;      // 8 filas (reducido de 10)
         } else {
-            columns = 4;   // 4 columnas (era 2)
-            rows = 12;     // 12 filas (era 6)
-            spacing = 80;
+            columns = 4;   // 4 columnas
+            rows = 10;     // 10 filas (reducido de 12)
         }
 
         // Crear cuadrícula densa de marcas de agua
@@ -1652,50 +1649,118 @@
 
             let screenshotAttempts = 0;
             let isBlurred = false;
+            let isLocked = false;
+
+            // Función para bloquear pantalla hasta confirmación
+            function lockScreen() {
+                isLocked = true;
+                document.body.style.opacity = '0';
+                document.body.style.filter = 'blur(50px)';
+                document.body.style.pointerEvents = 'none';
+            }
+
+            // Función para desbloquear con confirmación
+            function requestUnlock() {
+                const confirmed = confirm(
+                    '⚠️ ALERTA DE SEGURIDAD\n\n' +
+                    'Se detectó un intento de captura de pantalla.\n\n' +
+                    'Intento #' + screenshotAttempts + '\n' +
+                    'Usuario: {{ user.username }}\n' +
+                    'Fecha: ' + new Date().toLocaleString() + '\n\n' +
+                    '¿CONFIRMAS que NO intentarás tomar más capturas?\n\n' +
+                    'Presiona OK para continuar el examen.\n' +
+                    'Presiona CANCELAR y serás expulsado del examen.'
+                );
+
+                if (confirmed) {
+                    // Usuario confirmó - restaurar SOLO si promete no capturar
+                    setTimeout(function() {
+                        document.body.style.opacity = '1';
+                        document.body.style.filter = 'none';
+                        document.body.style.pointerEvents = 'auto';
+                        isBlurred = false;
+                        isLocked = false;
+                    }, 500);
+                } else {
+                    // Usuario rechazó - mantener bloqueado y advertir
+                    alert('🚫 ACCESO DENEGADO\n\nHas rechazado la confirmación.\n\nEl examen permanecerá bloqueado.\n\nContacta al administrador.');
+                    // Mantener pantalla bloqueada permanentemente
+                    document.body.style.opacity = '0';
+                }
+            }
 
             // PROTECCIÓN 1: Detectar blur/focus de ventana (captura Android)
             window.addEventListener('blur', function() {
                 // Inmediatamente ocultar contenido
-                if (!isBlurred) {
-                    document.body.style.opacity = '0';
-                    document.body.style.filter = 'blur(50px)';
-                    isBlurred = true;
-
+                if (!isBlurred && !isLocked) {
                     screenshotAttempts++;
                     console.error('INTENTO DE CAPTURA DETECTADO #' + screenshotAttempts);
 
-                    // Mostrar advertencia inmediata
-                    setTimeout(function() {
-                        alert('⚠️ ALERTA DE SEGURIDAD\n\nSe detectó un posible intento de captura de pantalla.\n\nEsta acción queda registrada con:\n- Fecha y hora\n- Dispositivo\n- Usuario: {{ user.username }}\n\nLas capturas están PROHIBIDAS.');
-                    }, 50);
+                    lockScreen();
+                    isBlurred = true;
+
+                    // Solicitar confirmación después de bloquear
+                    setTimeout(requestUnlock, 300);
                 }
             });
 
             window.addEventListener('focus', function() {
-                // Restaurar contenido cuando vuelve el foco
-                setTimeout(function() {
-                    document.body.style.opacity = '1';
-                    document.body.style.filter = 'none';
-                    isBlurred = false;
-                }, 100);
+                // NO restaurar automáticamente - solo si no está locked
+                if (!isLocked) {
+                    setTimeout(function() {
+                        if (!isLocked) {
+                            document.body.style.opacity = '1';
+                            document.body.style.filter = 'none';
+                            document.body.style.pointerEvents = 'auto';
+                            isBlurred = false;
+                        }
+                    }, 100);
+                }
             });
 
             // PROTECCIÓN 2: Detectar visibility change
             document.addEventListener('visibilitychange', function() {
-                if (document.hidden) {
+                if (document.hidden && !isLocked) {
                     // Pantalla se ocultó - posible captura
-                    document.body.style.opacity = '0';
                     screenshotAttempts++;
+                    console.error('VISIBILITY CHANGE - Intento #' + screenshotAttempts);
+
+                    lockScreen();
 
                     if (screenshotAttempts >= 2) {
                         setTimeout(function() {
-                            alert('🚫 ADVERTENCIA FINAL\n\nSe han detectado ' + screenshotAttempts + ' intentos de captura.\n\nPróximo intento = Examen suspendido automáticamente.');
-                        }, 50);
+                            const finalWarning = confirm(
+                                '🚫 ADVERTENCIA FINAL\n\n' +
+                                'Se han detectado ' + screenshotAttempts + ' intentos de captura.\n\n' +
+                                'Esta es tu ÚLTIMA OPORTUNIDAD.\n\n' +
+                                'Siguiente intento = EXPULSIÓN AUTOMÁTICA del examen.\n\n' +
+                                '¿Confirmas que detendrás los intentos de captura?\n' +
+                                'OK = Continuar examen\n' +
+                                'CANCELAR = Salir del examen'
+                            );
+
+                            if (finalWarning) {
+                                document.body.style.opacity = '1';
+                                document.body.style.filter = 'none';
+                                document.body.style.pointerEvents = 'auto';
+                                isLocked = false;
+                            } else {
+                                // Redirigir a dashboard o bloquear permanentemente
+                                alert('Examen terminado. Serás redirigido.');
+                                window.location.href = '/accounts/dashboard/';
+                            }
+                        }, 300);
+                    } else {
+                        setTimeout(requestUnlock, 300);
                     }
-                } else {
-                    // Restaurar
+                } else if (!document.hidden && !isLocked) {
+                    // Restaurar solo si no está locked
                     setTimeout(function() {
-                        document.body.style.opacity = '1';
+                        if (!isLocked) {
+                            document.body.style.opacity = '1';
+                            document.body.style.filter = 'none';
+                            document.body.style.pointerEvents = 'auto';
+                        }
                     }, 100);
                 }
             });
