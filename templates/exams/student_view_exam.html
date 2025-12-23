@@ -234,57 +234,67 @@
         -ms-user-select: none;
     }
 
-    /* Watermark de seguridad - 4 columnas verticales grandes sobre toda la pantalla */
+    /* Watermark de seguridad - Sistema de columnas múltiples que cubren toda la pantalla */
     .content {
         position: relative;
     }
 
+    /* Estilos base para todas las marcas de agua */
     .content::before,
     .content::after,
     .view-container::before,
-    .view-container::after {
+    .view-container::after,
+    body::before {
         content: "{{ user.get_full_name|default:user.username }} - {{ user.email|default:'Usuario' }}";
         position: fixed;
         top: 0;
         bottom: 0;
         writing-mode: vertical-rl;
         text-orientation: mixed;
-        font-size: 3.5vw;  /* Responsivo: se adapta al ancho de pantalla */
-        color: rgba(0, 0, 0, 0.08);  /* Más oscuro: de 0.03 a 0.08 */
-        font-weight: 900;  /* Extra-bold: de bold a 900 */
+        font-size: 2.5vw;  /* Tamaño más pequeño para que quepa completo */
+        color: rgba(0, 0, 0, 0.08);
+        font-weight: 900;
         pointer-events: none;
         z-index: 9999;
         display: flex;
         align-items: center;
         justify-content: center;
-        letter-spacing: 0.8vw;  /* Letter-spacing responsivo */
+        letter-spacing: 0.3vw;
         text-transform: uppercase;
-        white-space: nowrap;  /* Evita que el texto se corte */
-        overflow: visible;  /* Asegura que todo el texto sea visible */
+        white-space: nowrap;
+        overflow: visible;
+        padding: 2vh 0;  /* Padding vertical para que no toque bordes */
     }
 
-    /* Columna 1 - sobre área de PREGUNTA */
+    /* Sistema de 5 columnas que cubren uniformemente toda la pantalla */
+    /* Columna 1 */
     .content::before {
-        left: 12%;
-        width: 23%;
+        left: 5%;
+        transform: translateX(-50%);
     }
 
-    /* Columna 2 - sobre área de RESPUESTA */
+    /* Columna 2 */
     .content::after {
-        left: 35%;
-        width: 23%;
+        left: 28%;
+        transform: translateX(-50%);
     }
 
-    /* Columna 3 - sobre área de DESCRIPCIÓN */
+    /* Columna 3 (centro) */
     .view-container::before {
-        left: 58%;
-        width: 23%;
+        left: 50%;
+        transform: translateX(-50%);
     }
 
-    /* Columna 4 - sobre área de IMAGEN */
+    /* Columna 4 */
     .view-container::after {
-        left: 81%;
-        width: 19%;
+        left: 72%;
+        transform: translateX(-50%);
+    }
+
+    /* Columna 5 */
+    body::before {
+        left: 95%;
+        transform: translateX(-50%);
     }
 
     /* Protección de imágenes - Permitir click pero no descarga */
@@ -309,9 +319,10 @@
         .content::before,
         .content::after,
         .view-container::before,
-        .view-container::after {
-            font-size: 4vw;  /* Tamaño ligeramente mayor en pantallas medianas */
-            letter-spacing: 1vw;
+        .view-container::after,
+        body::before {
+            font-size: 3vw;  /* Tamaño ligeramente mayor */
+            letter-spacing: 0.4vw;
         }
     }
 
@@ -319,9 +330,15 @@
         .content::before,
         .content::after,
         .view-container::before,
-        .view-container::after {
-            font-size: 5vw;  /* Tamaño mayor en tablets */
-            letter-spacing: 1.2vw;
+        .view-container::after,
+        body::before {
+            font-size: 3.5vw;  /* Más grande en tablets */
+            letter-spacing: 0.5vw;
+        }
+
+        /* En tablets, ocultar una columna para evitar solapamiento */
+        body::before {
+            display: none;
         }
     }
 
@@ -329,10 +346,28 @@
         .content::before,
         .content::after,
         .view-container::before,
-        .view-container::after {
-            font-size: 6vw;  /* Tamaño mayor en móviles */
-            letter-spacing: 1.5vw;
-            color: rgba(0, 0, 0, 0.1);  /* Un poco más oscuro en móviles */
+        .view-container::after,
+        body::before {
+            font-size: 5vw;  /* Más grande en móviles */
+            letter-spacing: 0.8vw;
+            color: rgba(0, 0, 0, 0.1);  /* Un poco más oscuro */
+        }
+
+        /* En móviles, solo mostrar 3 columnas */
+        .view-container::after,
+        body::before {
+            display: none;
+        }
+
+        /* Redistribuir las 3 columnas restantes */
+        .content::before {
+            left: 15%;
+        }
+        .content::after {
+            left: 50%;
+        }
+        .view-container::before {
+            left: 85%;
         }
     }
 
@@ -348,7 +383,8 @@
         .content::before,
         .content::after,
         .view-container::before,
-        .view-container::after {
+        .view-container::after,
+        body::before {
             color: rgba(255, 0, 0, 0.3) !important;
             font-size: 8vw !important;
             content: "NO AUTORIZADO" !important;
