@@ -155,10 +155,12 @@ def user_list(request):
 
     from django.utils import timezone
     from datetime import timedelta
+    from axes.models import AccessAttempt
 
     users = User.objects.all().order_by('-date_joined')
 
     # Calcular si cada usuario está en línea (último acceso hace menos de 15 minutos)
+    # y verificar si está bloqueado por Axes
     now = timezone.now()
     for user in users:
         if user.last_login:
@@ -166,6 +168,21 @@ def user_list(request):
             user.is_online = time_diff < timedelta(minutes=15)
         else:
             user.is_online = False
+
+        # Verificar si el usuario tiene intentos fallidos en Axes
+        try:
+            attempts = AccessAttempt.objects.filter(username=user.username)
+            if attempts.exists():
+                # Si tiene intentos registrados, verificar si está bloqueado
+                latest_attempt = attempts.order_by('-attempt_time').first()
+                user.has_axes_attempts = True
+                user.axes_failures = latest_attempt.failures_since_start if latest_attempt else 0
+            else:
+                user.has_axes_attempts = False
+                user.axes_failures = 0
+        except:
+            user.has_axes_attempts = False
+            user.axes_failures = 0
 
     context = {'users': users}
     return render(request, 'accounts/user_list.html', context)
@@ -449,3 +466,30 @@ def get_pending_requests_count(request):
         count = LoginReactivationRequest.objects.filter(status='pending').count()
         return JsonResponse({'count': count})
     return JsonResponse({'count': 0})
+
+
+@login_required
+def reset_axes_for_user(request, user_id):
+    """Vista para que el admin desbloquee los intentos de Axes de un usuario específico"""
+    if not request.user.is_admin():
+        messages.error(request, 'No tienes permisos para realizar esta acción.')
+        return redirect('accounts:dashboard')
+
+    if request.method == 'POST':
+        user_to_unlock = get_object_or_404(User, pk=user_id)
+
+        # Importar las funciones necesarias de Axes
+        from axes.utils import reset as axes_reset
+
+        try:
+            # Resetear los intentos de Axes para este usuario
+            axes_reset(username=user_to_unlock.username)
+            messages.success(
+                request,
+                f'Bloqueos de seguridad eliminados para "{user_to_unlock.username}". '
+                f'El usuario puede intentar iniciar sesión nuevamente.'
+            )
+        except Exception as e:
+            messages.error(request, f'Error al desbloquear: {str(e)}')
+
+    return redirect('accounts:user_list')

@@ -14,6 +14,7 @@ urlpatterns = [
     path('users/<int:user_id>/edit/', views.edit_user, name='edit_user'),
     path('users/<int:user_id>/toggle-status/', views.toggle_user_status, name='toggle_user_status'),
     path('users/<int:user_id>/reset-login-count/', views.reset_user_login_count, name='reset_user_login_count'),
+    path('users/<int:user_id>/reset-axes/', views.reset_axes_for_user, name='reset_axes_for_user'),
 
     # Reactivación de cuentas
     path('request-reactivation/', views.request_reactivation, name='request_reactivation'),
