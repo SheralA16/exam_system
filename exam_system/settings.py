@@ -231,7 +231,7 @@ def axes_whitelist_check(request, credentials=None):
     return False  # Aplicar Axes normalmente
 
 AXES_WHITELIST_CALLABLE = 'exam_system.settings.axes_whitelist_check'
-AXES_USERNAME_CALLABLE = lambda request: request.POST.get('username', '')
+AXES_USERNAME_CALLABLE = lambda request, credentials=None: request.POST.get('username', '')
 
 # File Upload Security
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5 MB máximo en memoria
