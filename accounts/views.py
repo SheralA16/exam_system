@@ -493,3 +493,59 @@ def reset_axes_for_user(request, user_id):
             messages.error(request, f'Error al desbloquear: {str(e)}')
 
     return redirect('accounts:user_list')
+
+
+@login_required
+def get_users_data(request):
+    """API endpoint para obtener datos actualizados de usuarios en tiempo real"""
+    if not request.user.is_admin():
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+
+    from django.utils import timezone
+    from datetime import timedelta
+    from axes.models import AccessAttempt
+
+    users = User.objects.all().order_by('-date_joined')
+    now = timezone.now()
+
+    users_data = []
+    for user_item in users:
+        # Calcular estado en línea
+        is_online = False
+        if user_item.last_login:
+            time_diff = now - user_item.last_login
+            is_online = time_diff < timedelta(minutes=15)
+
+        # Verificar intentos de Axes
+        has_axes_attempts = False
+        axes_failures = 0
+        try:
+            attempts = AccessAttempt.objects.filter(username=user_item.username)
+            if attempts.exists():
+                latest_attempt = attempts.order_by('-attempt_time').first()
+                has_axes_attempts = True
+                axes_failures = latest_attempt.failures_since_start if latest_attempt else 0
+        except:
+            pass
+
+        users_data.append({
+            'id': user_item.id,
+            'username': user_item.username,
+            'full_name': user_item.get_full_name() or '-',
+            'email': user_item.email or '-',
+            'user_type': user_item.user_type,
+            'user_type_display': 'Administrador' if user_item.user_type == 'admin' else 'Estudiante',
+            'is_student': user_item.is_student(),
+            'login_count': user_item.login_count,
+            'max_logins_allowed': user_item.max_logins_allowed,
+            'is_disabled_by_login_limit': user_item.is_disabled_by_login_limit,
+            'date_joined': user_item.date_joined.strftime('%d/%m/%Y %H:%M'),
+            'last_login': user_item.last_login.strftime('%d/%m/%Y %H:%M') if user_item.last_login else None,
+            'is_online': is_online,
+            'is_active': user_item.is_active,
+            'has_axes_attempts': has_axes_attempts,
+            'axes_failures': axes_failures,
+            'is_current_user': user_item.id == request.user.id
+        })
+
+    return JsonResponse({'users': users_data})

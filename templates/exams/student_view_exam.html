@@ -249,16 +249,18 @@
         bottom: 0;
         writing-mode: vertical-rl;
         text-orientation: mixed;
-        font-size: 40px;
-        color: rgba(0, 0, 0, 0.03);
-        font-weight: bold;
+        font-size: 3.5vw;  /* Responsivo: se adapta al ancho de pantalla */
+        color: rgba(0, 0, 0, 0.08);  /* Más oscuro: de 0.03 a 0.08 */
+        font-weight: 900;  /* Extra-bold: de bold a 900 */
         pointer-events: none;
         z-index: 9999;
         display: flex;
         align-items: center;
         justify-content: center;
-        letter-spacing: 15px;
+        letter-spacing: 0.8vw;  /* Letter-spacing responsivo */
         text-transform: uppercase;
+        white-space: nowrap;  /* Evita que el texto se corte */
+        overflow: visible;  /* Asegura que todo el texto sea visible */
     }
 
     /* Columna 1 - sobre área de PREGUNTA */
@@ -302,6 +304,38 @@
         -ms-user-select: none;
     }
 
+    /* Ajustes responsivos para marcas de agua */
+    @media (max-width: 1200px) {
+        .content::before,
+        .content::after,
+        .view-container::before,
+        .view-container::after {
+            font-size: 4vw;  /* Tamaño ligeramente mayor en pantallas medianas */
+            letter-spacing: 1vw;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .content::before,
+        .content::after,
+        .view-container::before,
+        .view-container::after {
+            font-size: 5vw;  /* Tamaño mayor en tablets */
+            letter-spacing: 1.2vw;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .content::before,
+        .content::after,
+        .view-container::before,
+        .view-container::after {
+            font-size: 6vw;  /* Tamaño mayor en móviles */
+            letter-spacing: 1.5vw;
+            color: rgba(0, 0, 0, 0.1);  /* Un poco más oscuro en móviles */
+        }
+    }
+
     /* Ocultar contenido al imprimir */
     @media print {
         .questions-table,
@@ -316,7 +350,7 @@
         .view-container::before,
         .view-container::after {
             color: rgba(255, 0, 0, 0.3) !important;
-            font-size: 60px !important;
+            font-size: 8vw !important;
             content: "NO AUTORIZADO" !important;
         }
 
