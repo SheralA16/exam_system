@@ -210,8 +210,28 @@ AXES_COOLOFF_TIME = 1  # Bloquear por 1 hora (en horas)
 AXES_LOCK_OUT_AT_FAILURE = True  # Activar bloqueo
 AXES_RESET_ON_SUCCESS = True  # Resetear contador al login exitoso
 AXES_LOCKOUT_TEMPLATE = None  # Usar página de error por defecto
-AXES_LOCKOUT_PARAMETERS = [['username'], ['ip_address']]  # Bloquear por usuario e IP
+AXES_LOCKOUT_PARAMETERS = [['username']]  # Bloquear SOLO por usuario (no por IP)
 AXES_VERBOSE = True  # Logging detallado
+
+# Función para whitelist de administradores en Axes
+def axes_whitelist_check(request, credentials=None):
+    """Eximir a los administradores del bloqueo de Axes"""
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+
+    username = request.POST.get('username', '')
+    if username:
+        try:
+            user = User.objects.get(username=username)
+            # Si es administrador, no aplicar Axes (whitelist)
+            if user.user_type == 'admin':
+                return True
+        except User.DoesNotExist:
+            pass
+    return False  # Aplicar Axes normalmente
+
+AXES_WHITELIST_CALLABLE = 'exam_system.settings.axes_whitelist_check'
+AXES_USERNAME_CALLABLE = lambda request: request.POST.get('username', '')
 
 # File Upload Security
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5 MB máximo en memoria
