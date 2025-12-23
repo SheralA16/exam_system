@@ -60,6 +60,23 @@
                 <p>Gestionar usuarios del sistema</p>
                 <a href="{% url 'accounts:user_list' %}" class="btn-card">Ver Usuarios</a>
             </div>
+
+            <div class="dashboard-card{% if pending_reactivation_count > 0 %} card-with-notification{% endif %}">
+                <div class="card-header-with-badge">
+                    <h3>Solicitudes de Reactivación</h3>
+                    {% if pending_reactivation_count > 0 %}
+                    <span class="notification-badge">{{ pending_reactivation_count }}</span>
+                    {% endif %}
+                </div>
+                <p>Gestionar solicitudes de reactivación de cuentas</p>
+                <a href="{% url 'accounts:reactivation_requests' %}" class="btn-card">
+                    {% if pending_reactivation_count > 0 %}
+                        Ver Solicitudes ({{ pending_reactivation_count }} pendiente{{ pending_reactivation_count|pluralize }})
+                    {% else %}
+                        Ver Solicitudes
+                    {% endif %}
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -161,6 +178,40 @@
     .dashboard-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-with-notification {
+        border: 2px solid #e74c3c;
+        background: linear-gradient(to bottom, #fff5f5 0%, white 50%);
+    }
+
+    .card-header-with-badge {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .notification-badge {
+        background: #e74c3c;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: bold;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+        }
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px 5px rgba(231, 76, 60, 0);
+        }
     }
 
     .dashboard-card h3 {

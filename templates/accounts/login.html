@@ -55,6 +55,51 @@
 
                 <button type="submit" class="btn-acceder">Acceder</button>
             </form>
+
+            {% if show_reactivation_button and disabled_user %}
+            <div class="reactivation-section">
+                <div class="reactivation-card">
+                    <h3>Cuenta Deshabilitada</h3>
+                    <p>Tu cuenta ha sido deshabilitada por exceder el límite de inicios de sesión permitidos.</p>
+                    <button type="button" class="btn-notify-admin" onclick="openReactivationModal()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        Notificar al Administrador
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal para solicitar reactivación -->
+            <div id="reactivationModal" class="reactivation-modal" style="display: none;">
+                <div class="modal-overlay" onclick="closeReactivationModal()"></div>
+                <div class="modal-content-reactivation">
+                    <div class="modal-header">
+                        <h3>Solicitar Reactivación de Cuenta</h3>
+                        <button type="button" class="modal-close" onclick="closeReactivationModal()">&times;</button>
+                    </div>
+                    <form method="post" action="{% url 'accounts:request_reactivation' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ disabled_user.id }}">
+                        <div class="modal-body">
+                            <p class="modal-description">
+                                Se enviará una notificación al administrador para que revise tu solicitud de reactivación.
+                                Puedes agregar un mensaje opcional explicando tu situación.
+                            </p>
+                            <div class="form-group-modal">
+                                <label for="message">Mensaje (opcional)</label>
+                                <textarea name="message" id="message" class="form-textarea" rows="4" placeholder="Escribe un mensaje para el administrador..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-cancel" onclick="closeReactivationModal()">Cancelar</button>
+                            <button type="submit" class="btn-send">Enviar Solicitud</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -91,6 +136,194 @@
     .eye-icon {
         display: block;
     }
+
+    /* Estilos para la sección de reactivación */
+    .reactivation-section {
+        margin-top: 30px;
+        padding-top: 30px;
+        border-top: 2px solid #e0e0e0;
+    }
+
+    .reactivation-card {
+        background: #fff3cd;
+        border: 2px solid #ffc107;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .reactivation-card h3 {
+        margin: 0 0 10px 0;
+        color: #856404;
+        font-size: 18px;
+    }
+
+    .reactivation-card p {
+        margin: 0 0 20px 0;
+        color: #856404;
+        font-size: 14px;
+    }
+
+    .btn-notify-admin {
+        background: #5cb811;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-notify-admin:hover {
+        background: #4a9a0e;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(92, 184, 17, 0.3);
+    }
+
+    /* Modal de reactivación */
+    .reactivation-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10000;
+    }
+
+    .modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content-reactivation {
+        position: relative;
+        background: white;
+        max-width: 500px;
+        margin: 100px auto;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        z-index: 10001;
+    }
+
+    .modal-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 20px;
+        color: #333;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 28px;
+        color: #999;
+        cursor: pointer;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.3s;
+    }
+
+    .modal-close:hover {
+        color: #333;
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    .modal-description {
+        margin: 0 0 20px 0;
+        color: #666;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .form-group-modal {
+        margin-bottom: 20px;
+    }
+
+    .form-group-modal label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .form-textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        transition: border-color 0.3s;
+    }
+
+    .form-textarea:focus {
+        outline: none;
+        border-color: #5cb811;
+    }
+
+    .modal-footer {
+        padding: 16px 24px;
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    .btn-cancel {
+        background: #f5f5f5;
+        color: #666;
+        border: 1px solid #ddd;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-cancel:hover {
+        background: #e0e0e0;
+    }
+
+    .btn-send {
+        background: #5cb811;
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-send:hover {
+        background: #4a9a0e;
+    }
 </style>
 
 <script>
@@ -116,6 +349,22 @@
                 togglePassword.setAttribute('aria-label', 'Ocultar contraseña');
             }
         });
+    });
+
+    // Funciones para el modal de reactivación
+    function openReactivationModal() {
+        document.getElementById('reactivationModal').style.display = 'block';
+    }
+
+    function closeReactivationModal() {
+        document.getElementById('reactivationModal').style.display = 'none';
+    }
+
+    // Cerrar modal con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeReactivationModal();
+        }
     });
 </script>
 {% endblock %}

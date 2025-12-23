@@ -234,78 +234,59 @@
         -ms-user-select: none;
     }
 
-    /* Watermark de seguridad - 4 columnas verticales */
-    .table-wrapper {
+    /* Watermark de seguridad - 4 columnas verticales grandes sobre toda la pantalla */
+    .content {
         position: relative;
     }
 
-    .table-wrapper::before,
-    .table-wrapper::after {
-        content: "{{ user.get_full_name|default:user.username }}";
-        position: absolute;
+    .content::before,
+    .content::after,
+    .view-container::before,
+    .view-container::after {
+        content: "{{ user.get_full_name|default:user.username }} - {{ user.email|default:'Usuario' }}";
+        position: fixed;
         top: 0;
         bottom: 0;
         writing-mode: vertical-rl;
         text-orientation: mixed;
-        font-size: 16px;
-        color: rgba(0, 0, 0, 0.05);
+        font-size: 40px;
+        color: rgba(0, 0, 0, 0.03);
         font-weight: bold;
         pointer-events: none;
-        z-index: 999;
+        z-index: 9999;
         display: flex;
         align-items: center;
         justify-content: center;
-        letter-spacing: 8px;
+        letter-spacing: 15px;
+        text-transform: uppercase;
     }
 
-    .table-wrapper::before {
+    /* Columna 1 - sobre área de PREGUNTA */
+    .content::before {
         left: 12%;
-        width: 35%;
+        width: 23%;
     }
 
-    .table-wrapper::after {
-        left: 47%;
-        width: 30%;
+    /* Columna 2 - sobre área de RESPUESTA */
+    .content::after {
+        left: 35%;
+        width: 23%;
     }
 
-    /* Columnas 3 y 4 del watermark usando pseudo-elementos de la tabla */
-    .questions-table::before,
-    .questions-table::after {
-        content: "{{ user.get_full_name|default:user.username }}";
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        writing-mode: vertical-rl;
-        text-orientation: mixed;
-        font-size: 16px;
-        color: rgba(0, 0, 0, 0.05);
-        font-weight: bold;
-        pointer-events: none;
-        z-index: 999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        letter-spacing: 8px;
+    /* Columna 3 - sobre área de DESCRIPCIÓN */
+    .view-container::before {
+        left: 58%;
+        width: 23%;
     }
 
-    .questions-table::before {
-        left: 77%;
-        width: 25%;
+    /* Columna 4 - sobre área de IMAGEN */
+    .view-container::after {
+        left: 81%;
+        width: 19%;
     }
 
-    .questions-table::after {
-        left: 90%;
-        width: 10%;
-    }
-
-    .questions-table {
-        position: relative;
-    }
-
-    /* Protección de imágenes */
-    .thumbnail,
-    .questions-table img {
-        pointer-events: none;
+    /* Protección de imágenes - Permitir click pero no descarga */
+    .thumbnail {
         user-select: none;
         -webkit-user-drag: none;
         -webkit-user-select: none;
@@ -313,20 +294,12 @@
         -ms-user-select: none;
     }
 
-    /* Overlay sobre imágenes para prevenir click derecho */
-    .thumbnail {
-        position: relative;
-    }
-
-    .thumbnail::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: transparent;
-        z-index: 10;
+    .questions-table img {
+        user-select: none;
+        -webkit-user-drag: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
     }
 
     /* Ocultar contenido al imprimir */
@@ -338,23 +311,26 @@
             display: none !important;
         }
 
-        .table-wrapper::before,
-        .table-wrapper::after,
-        .questions-table::before,
-        .questions-table::after {
+        .content::before,
+        .content::after,
+        .view-container::before,
+        .view-container::after {
             color: rgba(255, 0, 0, 0.3) !important;
-            font-size: 20px !important;
-            content: "NO AUTORIZADO - {{ user.get_full_name|default:user.username }}" !important;
+            font-size: 60px !important;
+            content: "NO AUTORIZADO" !important;
         }
 
-        .content::after {
-            content: "DOCUMENTO PROTEGIDO - IMPRESIÓN NO AUTORIZADA";
-            display: block;
+        body::after {
+            content: "DOCUMENTO PROTEGIDO - IMPRESIÓN NO AUTORIZADA - {{ user.get_full_name|default:user.username }}";
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             text-align: center;
             font-size: 36px;
             color: #e74c3c;
-            margin-top: 100px;
             font-weight: bold;
+            z-index: 99999;
         }
     }
 
@@ -1090,6 +1066,12 @@
         max-width: 90%;
         max-height: 80%;
         border-radius: 8px;
+        user-select: none;
+        -webkit-user-drag: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        pointer-events: none;
     }
 
     .close {
@@ -1406,6 +1388,15 @@
     function closeImageModal() {
         var modal = document.getElementById("imageModal");
         modal.style.display = "none";
+    }
+
+    // Bloquear click derecho en el modal de imagen
+    const imageModal = document.getElementById('imageModal');
+    if (imageModal) {
+        imageModal.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
     }
 
     // Cerrar modal con tecla ESC

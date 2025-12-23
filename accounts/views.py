@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django_ratelimit.decorators import ratelimit
+from .models import LoginReactivationRequest
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -19,6 +21,27 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
+            # Verificar si el usuario está deshabilitado por límite de inicios
+            if user.is_disabled_by_login_limit:
+                messages.error(
+                    request,
+                    'Tu cuenta ha sido deshabilitada por exceder el límite de inicios de sesión permitidos. '
+                    'Por favor, solicita la reactivación de tu cuenta.'
+                )
+                return render(request, 'accounts/login.html', {'show_reactivation_button': True, 'disabled_user': user})
+
+            # Incrementar contador de inicios de sesión (solo para estudiantes)
+            if user.is_student():
+                is_still_active = user.increment_login_count()
+
+                if not is_still_active:
+                    messages.error(
+                        request,
+                        f'Has alcanzado el límite máximo de {user.max_logins_allowed} inicios de sesión. '
+                        'Tu cuenta ha sido deshabilitada. Por favor, solicita la reactivación.'
+                    )
+                    return render(request, 'accounts/login.html', {'show_reactivation_button': True, 'disabled_user': user})
+
             login(request, user)
             messages.success(request, f'¡Bienvenido {user.first_name or user.username}!')
             return redirect('accounts:dashboard')
@@ -42,6 +65,9 @@ def dashboard_view(request):
     }
 
     if user.is_admin():
+        # Contar solicitudes pendientes de reactivación
+        pending_reactivation_count = LoginReactivationRequest.objects.filter(status='pending').count()
+        context['pending_reactivation_count'] = pending_reactivation_count
         return render(request, 'accounts/dashboard_admin.html', context)
     else:
         from exams.models import CourseEnrollment
@@ -251,3 +277,119 @@ def edit_user(request, user_id):
 
     context = {'user_to_edit': user_to_edit}
     return render(request, 'accounts/edit_user.html', context)
+
+
+@ratelimit(key='ip', rate='5/h', method='POST', block=True)
+def request_reactivation(request):
+    """Vista para que los estudiantes soliciten la reactivación de su cuenta"""
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        message = request.POST.get('message', '')
+
+        try:
+            user = User.objects.get(pk=user_id, is_disabled_by_login_limit=True)
+
+            # Verificar si ya tiene una solicitud pendiente
+            pending_request = LoginReactivationRequest.objects.filter(
+                user=user,
+                status='pending'
+            ).first()
+
+            if pending_request:
+                messages.warning(request, 'Ya tienes una solicitud de reactivación pendiente.')
+            else:
+                # Crear nueva solicitud
+                LoginReactivationRequest.objects.create(
+                    user=user,
+                    message=message
+                )
+                messages.success(
+                    request,
+                    'Tu solicitud de reactivación ha sido enviada al administrador. '
+                    'Recibirás una respuesta pronto.'
+                )
+
+        except User.DoesNotExist:
+            messages.error(request, 'Usuario no encontrado.')
+
+    return redirect('accounts:login')
+
+
+@login_required
+def reactivation_requests(request):
+    """Vista para que el admin vea y gestione solicitudes de reactivación"""
+    if not request.user.is_admin():
+        messages.error(request, 'No tienes permisos para acceder a esta página.')
+        return redirect('accounts:dashboard')
+
+    # Obtener todas las solicitudes ordenadas por estado y fecha
+    pending_requests = LoginReactivationRequest.objects.filter(status='pending').order_by('-requested_at')
+    processed_requests = LoginReactivationRequest.objects.exclude(status='pending').order_by('-processed_at')
+
+    context = {
+        'pending_requests': pending_requests,
+        'processed_requests': processed_requests,
+    }
+    return render(request, 'accounts/reactivation_requests.html', context)
+
+
+@login_required
+def approve_reactivation(request, request_id):
+    """Vista para que el admin apruebe una solicitud de reactivación"""
+    if not request.user.is_admin():
+        messages.error(request, 'No tienes permisos para realizar esta acción.')
+        return redirect('accounts:dashboard')
+
+    if request.method == 'POST':
+        reactivation_request = get_object_or_404(LoginReactivationRequest, pk=request_id)
+        admin_response = request.POST.get('admin_response', '')
+
+        reactivation_request.approve(request.user, admin_response)
+
+        messages.success(
+            request,
+            f'Solicitud aprobada. El usuario "{reactivation_request.user.username}" ha sido reactivado.'
+        )
+
+    return redirect('accounts:reactivation_requests')
+
+
+@login_required
+def reject_reactivation(request, request_id):
+    """Vista para que el admin rechace una solicitud de reactivación"""
+    if not request.user.is_admin():
+        messages.error(request, 'No tienes permisos para realizar esta acción.')
+        return redirect('accounts:dashboard')
+
+    if request.method == 'POST':
+        reactivation_request = get_object_or_404(LoginReactivationRequest, pk=request_id)
+        admin_response = request.POST.get('admin_response', '')
+
+        reactivation_request.reject(request.user, admin_response)
+
+        messages.success(request, f'Solicitud rechazada.')
+
+    return redirect('accounts:reactivation_requests')
+
+
+@login_required
+def reset_user_login_count(request, user_id):
+    """Vista para que el admin resetee manualmente el contador de inicios de sesión"""
+    if not request.user.is_admin():
+        messages.error(request, 'No tienes permisos para realizar esta acción.')
+        return redirect('accounts:dashboard')
+
+    if request.method == 'POST':
+        user_to_reset = get_object_or_404(User, pk=user_id)
+
+        if user_to_reset.is_student():
+            user_to_reset.reset_login_count()
+            messages.success(
+                request,
+                f'Contador de inicios de sesión reseteado para "{user_to_reset.username}". '
+                f'El usuario ha sido reactivado.'
+            )
+        else:
+            messages.error(request, 'Solo se puede resetear el contador de estudiantes.')
+
+    return redirect('accounts:user_list')

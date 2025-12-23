@@ -45,6 +45,7 @@
                         <th>Nombre Completo</th>
                         <th>Email</th>
                         <th>Tipo</th>
+                        <th>Inicios de Sesión</th>
                         <th>Fecha de Registro</th>
                         <th>Último Acceso</th>
                         <th>Estado</th>
@@ -62,6 +63,20 @@
                                     <span class="badge badge-admin">Administrador</span>
                                 {% else %}
                                     <span class="badge badge-student">Estudiante</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user_item.is_student %}
+                                    <div class="login-count-cell">
+                                        <span class="count-text">{{ user_item.login_count }} / {{ user_item.max_logins_allowed }}</span>
+                                        {% if user_item.is_disabled_by_login_limit %}
+                                            <span class="badge badge-danger">Límite alcanzado</span>
+                                        {% elif user_item.login_count >= user_item.max_logins_allowed|add:"-1" %}
+                                            <span class="badge badge-warning">Cerca del límite</span>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <span style="color: #95a5a6;">N/A</span>
                                 {% endif %}
                             </td>
                             <td>{{ user_item.date_joined|date:"d/m/Y H:i" }}</td>
@@ -96,6 +111,18 @@
                                         </svg>
                                     </a>
 
+                                    {% if user_item.is_student and user_item.is_disabled_by_login_limit %}
+                                        <form method="post" action="{% url 'accounts:reset_user_login_count' user_item.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-action btn-reset" title="Resetear contador y reactivar">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
                                     {% if user_item.id != user.id %}
                                         {% if user_item.is_active %}
                                             <form method="post" action="{% url 'accounts:toggle_user_status' user_item.id %}" style="display: inline;">
@@ -124,7 +151,7 @@
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="8" style="text-align: center;">No hay usuarios registrados.</td>
+                            <td colspan="9" style="text-align: center;">No hay usuarios registrados.</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -280,6 +307,33 @@
         color: white;
     }
 
+    .badge-danger {
+        background-color: #e74c3c;
+        color: white;
+        font-size: 11px;
+        padding: 3px 8px;
+    }
+
+    .badge-warning {
+        background-color: #f39c12;
+        color: white;
+        font-size: 11px;
+        padding: 3px 8px;
+    }
+
+    .login-count-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-start;
+    }
+
+    .count-text {
+        font-weight: 500;
+        color: #333;
+        font-size: 14px;
+    }
+
     .status {
         display: inline-flex;
         align-items: center;
@@ -353,6 +407,16 @@
 
     .btn-edit:hover {
         background-color: #0056b3;
+        transform: translateY(-2px);
+    }
+
+    .btn-reset {
+        background-color: #f39c12;
+        color: white;
+    }
+
+    .btn-reset:hover {
+        background-color: #e67e22;
         transform: translateY(-2px);
     }
 

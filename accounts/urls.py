@@ -13,4 +13,11 @@ urlpatterns = [
     path('users/create/', views.create_user, name='create_user'),
     path('users/<int:user_id>/edit/', views.edit_user, name='edit_user'),
     path('users/<int:user_id>/toggle-status/', views.toggle_user_status, name='toggle_user_status'),
+    path('users/<int:user_id>/reset-login-count/', views.reset_user_login_count, name='reset_user_login_count'),
+
+    # Reactivación de cuentas
+    path('request-reactivation/', views.request_reactivation, name='request_reactivation'),
+    path('reactivation-requests/', views.reactivation_requests, name='reactivation_requests'),
+    path('reactivation-requests/<int:request_id>/approve/', views.approve_reactivation, name='approve_reactivation'),
+    path('reactivation-requests/<int:request_id>/reject/', views.reject_reactivation, name='reject_reactivation'),
 ]
