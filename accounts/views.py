@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django_ratelimit.decorators import ratelimit
 from .models import LoginReactivationRequest
 from django.utils import timezone
+from django.http import JsonResponse
 
 User = get_user_model()
 
@@ -18,18 +19,29 @@ def login_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
+        # Verificar si el usuario existe y está deshabilitado ANTES de autenticar
+        # Esto previene que Django Axes trate los intentos como fallidos
+        try:
+            user_check = User.objects.get(username=username)
+            if user_check.is_disabled_by_login_limit:
+                messages.error(
+                    request,
+                    'Tu cuenta está deshabilitada por exceder el límite de inicios de sesión permitidos. '
+                    'Por favor, solicita la reactivación de tu cuenta.'
+                )
+                return render(request, 'accounts/login.html', {
+                    'show_reactivation_button': True,
+                    'disabled_user': user_check
+                })
+        except User.DoesNotExist:
+            # El usuario no existe, continuar con el flujo normal
+            # Django Axes se encargará de bloquear intentos repetidos
+            pass
+
+        # Intentar autenticar solo si la cuenta no está deshabilitada
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            # Verificar si el usuario está deshabilitado por límite de inicios
-            if user.is_disabled_by_login_limit:
-                messages.error(
-                    request,
-                    'Tu cuenta ha sido deshabilitada por exceder el límite de inicios de sesión permitidos. '
-                    'Por favor, solicita la reactivación de tu cuenta.'
-                )
-                return render(request, 'accounts/login.html', {'show_reactivation_button': True, 'disabled_user': user})
-
             # Incrementar contador de inicios de sesión (solo para estudiantes)
             if user.is_student():
                 is_still_active = user.increment_login_count()
@@ -428,3 +440,12 @@ def delete_reactivation_request(request, request_id):
             messages.success(request, f'Solicitud de "{username}" eliminada exitosamente.')
 
     return redirect('accounts:reactivation_requests')
+
+
+@login_required
+def get_pending_requests_count(request):
+    """API endpoint para obtener el contador de solicitudes pendientes en tiempo real"""
+    if request.user.is_admin():
+        count = LoginReactivationRequest.objects.filter(status='pending').count()
+        return JsonResponse({'count': count})
+    return JsonResponse({'count': 0})

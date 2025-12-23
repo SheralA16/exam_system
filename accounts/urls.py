@@ -21,4 +21,5 @@ urlpatterns = [
     path('reactivation-requests/<int:request_id>/approve/', views.approve_reactivation, name='approve_reactivation'),
     path('reactivation-requests/<int:request_id>/reject/', views.reject_reactivation, name='reject_reactivation'),
     path('reactivation-requests/<int:request_id>/delete/', views.delete_reactivation_request, name='delete_reactivation_request'),
+    path('get-pending-requests-count/', views.get_pending_requests_count, name='get_pending_requests_count'),
 ]

@@ -298,4 +298,59 @@
         }
     }
 </style>
+
+<script>
+    // Actualización automática del contador de notificaciones
+    function updateNotificationBadge() {
+        fetch('/accounts/get-pending-requests-count/')
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.querySelector('.notification-badge');
+                const card = document.querySelector('.card-with-notification');
+                const btnText = document.querySelector('.btn-card');
+
+                if (data.count > 0) {
+                    // Actualizar badge
+                    if (badge) {
+                        badge.textContent = data.count;
+                    }
+
+                    // Actualizar texto del botón
+                    if (btnText) {
+                        const plural = data.count > 1 ? 's' : '';
+                        btnText.textContent = `Ver Solicitudes (${data.count} pendiente${plural})`;
+                    }
+
+                    // Asegurar que la tarjeta tenga la clase de notificación
+                    if (card && !card.classList.contains('card-with-notification')) {
+                        card.classList.add('card-with-notification');
+                    }
+                } else {
+                    // Si no hay solicitudes, remover el badge
+                    if (badge) {
+                        badge.remove();
+                    }
+
+                    // Actualizar texto del botón
+                    if (btnText) {
+                        btnText.textContent = 'Ver Solicitudes';
+                    }
+
+                    // Remover clase de notificación
+                    if (card) {
+                        card.classList.remove('card-with-notification');
+                    }
+                }
+            })
+            .catch(error => console.error('Error al actualizar notificaciones:', error));
+    }
+
+    // Actualizar cada 30 segundos
+    setInterval(updateNotificationBadge, 30000);
+
+    // Primera actualización al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(updateNotificationBadge, 2000);
+    });
+</script>
 {% endblock %}
