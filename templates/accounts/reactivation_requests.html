@@ -5,7 +5,23 @@
 
 {% block content %}
 <div class="page-container">
-    {% include 'partials/navbar_admin.html' %}
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <img src="{% static 'images/imgizquierdo.png' %}" alt="USS" class="navbar-logo">
+        </div>
+        <div class="navbar-menu">
+            <a href="{% url 'accounts:dashboard' %}" class="btn-nav">Dashboard</a>
+            <a href="{% url 'accounts:user_list' %}" class="btn-nav">Usuarios</a>
+            <div class="user-info">
+                <svg class="user-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+            </div>
+            <a href="{% url 'accounts:logout' %}" class="btn-logout">Cerrar Sesión</a>
+        </div>
+    </nav>
 
     <div class="content-wrapper">
         <div class="page-header">
@@ -214,6 +230,79 @@
 
     .page-container {
         min-height: 100vh;
+    }
+
+    /* Navbar styles */
+    .navbar {
+        background: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar-brand {
+        display: flex;
+        align-items: center;
+    }
+
+    .navbar-logo {
+        height: 45px;
+    }
+
+    .navbar-menu {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .btn-nav {
+        padding: 8px 16px;
+        background: transparent;
+        color: #333;
+        text-decoration: none;
+        border-radius: 6px;
+        transition: all 0.3s;
+        font-weight: 500;
+    }
+
+    .btn-nav:hover {
+        background: #f5f5f5;
+        color: #7ed321;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: #f5f5f5;
+        border-radius: 6px;
+    }
+
+    .user-icon {
+        color: #7ed321;
+    }
+
+    .user-name {
+        font-weight: 500;
+        color: #333;
+    }
+
+    .btn-logout {
+        padding: 8px 20px;
+        background: #e74c3c;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        transition: all 0.3s;
+        font-weight: 500;
+    }
+
+    .btn-logout:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
     }
 
     .content-wrapper {

@@ -72,7 +72,21 @@ def dashboard_view(request):
     else:
         from exams.models import CourseEnrollment
         enrollments = CourseEnrollment.objects.filter(student=user).select_related('course')
-        context['enrollments'] = enrollments
+
+        # Verificar si hay problemas con las imágenes de Cloudinary
+        safe_enrollments = []
+        for enrollment in enrollments:
+            try:
+                # Intentar acceder a la URL de la imagen para detectar errores de Cloudinary
+                if enrollment.course.image and enrollment.course.image.name:
+                    _ = enrollment.course.image.url
+                safe_enrollments.append(enrollment)
+            except Exception:
+                # Si hay error con Cloudinary, agregar sin la imagen
+                enrollment.course.image = None
+                safe_enrollments.append(enrollment)
+
+        context['enrollments'] = safe_enrollments
         return render(request, 'accounts/dashboard_student.html', context)
 
 
