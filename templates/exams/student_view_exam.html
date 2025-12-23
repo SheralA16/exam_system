@@ -225,6 +225,15 @@
         padding: 0;
     }
 
+    /* Protección contra impresión y capturas vía print */
+    @media print {
+        body {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+        }
+    }
+
     /* Protección de contenido */
     .questions-table,
     .questions-table * {
@@ -1625,203 +1634,119 @@
         }
     }
 
-    // Protección AGRESIVA contra capturas de pantalla en móviles
+    // Protección contra capturas de pantalla - TODOS LOS DISPOSITIVOS
+    // Capturas saldrán dañadas/opacas sin dialogs ni bloqueos
     function setupScreenshotProtection() {
-        // Detectar si es dispositivo móvil
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        console.warn('Modo de protección anti-captura activado para todos los dispositivos');
 
-        if (isMobile) {
-            console.warn('Modo de protección anti-captura activado');
+        // Agregar meta tags de seguridad
+        const metaSecure = document.createElement('meta');
+        metaSecure.name = 'fragment';
+        metaSecure.content = '!';
+        document.head.appendChild(metaSecure);
 
-            // Agregar meta tags de seguridad
-            const metaSecure = document.createElement('meta');
-            metaSecure.name = 'fragment';
-            metaSecure.content = '!';
-            document.head.appendChild(metaSecure);
+        const metaDRM = document.createElement('meta');
+        metaDRM.name = 'secure-content';
+        metaDRM.content = 'true';
+        document.head.appendChild(metaDRM);
 
-            // Flag de seguridad DRM-like
-            const metaDRM = document.createElement('meta');
-            metaDRM.name = 'secure-content';
-            metaDRM.content = 'true';
-            document.head.appendChild(metaDRM);
+        document.body.setAttribute('data-screenshot-protected', 'true');
 
-            document.body.setAttribute('data-screenshot-protected', 'true');
+        // PROTECCIÓN 1: Dañar captura al perder foco de ventana
+        // Cualquier captura saldrá completamente borrosa y opaca
+        window.addEventListener('blur', function() {
+            document.body.style.filter = 'blur(100px)';
+            document.body.style.opacity = '0.05';
+        });
 
-            let screenshotAttempts = 0;
-            let isBlurred = false;
-            let isLocked = false;
-
-            // Función para bloquear pantalla hasta confirmación
-            function lockScreen() {
-                isLocked = true;
-                document.body.style.opacity = '0';
-                document.body.style.filter = 'blur(50px)';
-                document.body.style.pointerEvents = 'none';
-            }
-
-            // Función para desbloquear con confirmación
-            function requestUnlock() {
-                const confirmed = confirm(
-                    '⚠️ ALERTA DE SEGURIDAD\n\n' +
-                    'Se detectó un intento de captura de pantalla.\n\n' +
-                    'Intento #' + screenshotAttempts + '\n' +
-                    'Usuario: {{ user.username }}\n' +
-                    'Fecha: ' + new Date().toLocaleString() + '\n\n' +
-                    '¿CONFIRMAS que NO intentarás tomar más capturas?\n\n' +
-                    'Presiona OK para continuar el examen.\n' +
-                    'Presiona CANCELAR y serás expulsado del examen.'
-                );
-
-                if (confirmed) {
-                    // Usuario confirmó - restaurar SOLO si promete no capturar
-                    setTimeout(function() {
-                        document.body.style.opacity = '1';
-                        document.body.style.filter = 'none';
-                        document.body.style.pointerEvents = 'auto';
-                        isBlurred = false;
-                        isLocked = false;
-                    }, 500);
-                } else {
-                    // Usuario rechazó - mantener bloqueado y advertir
-                    alert('🚫 ACCESO DENEGADO\n\nHas rechazado la confirmación.\n\nEl examen permanecerá bloqueado.\n\nContacta al administrador.');
-                    // Mantener pantalla bloqueada permanentemente
-                    document.body.style.opacity = '0';
-                }
-            }
-
-            // PROTECCIÓN 1: Detectar blur/focus de ventana (captura Android)
-            window.addEventListener('blur', function() {
-                // Inmediatamente ocultar contenido
-                if (!isBlurred && !isLocked) {
-                    screenshotAttempts++;
-                    console.error('INTENTO DE CAPTURA DETECTADO #' + screenshotAttempts);
-
-                    lockScreen();
-                    isBlurred = true;
-
-                    // Solicitar confirmación después de bloquear
-                    setTimeout(requestUnlock, 300);
-                }
-            });
-
-            window.addEventListener('focus', function() {
-                // NO restaurar automáticamente - solo si no está locked
-                if (!isLocked) {
-                    setTimeout(function() {
-                        if (!isLocked) {
-                            document.body.style.opacity = '1';
-                            document.body.style.filter = 'none';
-                            document.body.style.pointerEvents = 'auto';
-                            isBlurred = false;
-                        }
-                    }, 100);
-                }
-            });
-
-            // PROTECCIÓN 2: Detectar visibility change
-            document.addEventListener('visibilitychange', function() {
-                if (document.hidden && !isLocked) {
-                    // Pantalla se ocultó - posible captura
-                    screenshotAttempts++;
-                    console.error('VISIBILITY CHANGE - Intento #' + screenshotAttempts);
-
-                    lockScreen();
-
-                    if (screenshotAttempts >= 2) {
-                        setTimeout(function() {
-                            const finalWarning = confirm(
-                                '🚫 ADVERTENCIA FINAL\n\n' +
-                                'Se han detectado ' + screenshotAttempts + ' intentos de captura.\n\n' +
-                                'Esta es tu ÚLTIMA OPORTUNIDAD.\n\n' +
-                                'Siguiente intento = EXPULSIÓN AUTOMÁTICA del examen.\n\n' +
-                                '¿Confirmas que detendrás los intentos de captura?\n' +
-                                'OK = Continuar examen\n' +
-                                'CANCELAR = Salir del examen'
-                            );
-
-                            if (finalWarning) {
-                                document.body.style.opacity = '1';
-                                document.body.style.filter = 'none';
-                                document.body.style.pointerEvents = 'auto';
-                                isLocked = false;
-                            } else {
-                                // Redirigir a dashboard o bloquear permanentemente
-                                alert('Examen terminado. Serás redirigido.');
-                                window.location.href = '/accounts/dashboard/';
-                            }
-                        }, 300);
-                    } else {
-                        setTimeout(requestUnlock, 300);
-                    }
-                } else if (!document.hidden && !isLocked) {
-                    // Restaurar solo si no está locked
-                    setTimeout(function() {
-                        if (!isLocked) {
-                            document.body.style.opacity = '1';
-                            document.body.style.filter = 'none';
-                            document.body.style.pointerEvents = 'auto';
-                        }
-                    }, 100);
-                }
-            });
-
-            // PROTECCIÓN 3: Detectar pérdida de foco del documento
-            document.addEventListener('blur', function() {
-                document.body.style.filter = 'blur(30px)';
-            });
-
-            document.addEventListener('focus', function() {
+        window.addEventListener('focus', function() {
+            // Restaurar después de 150ms para asegurar que captura ya se tomó
+            setTimeout(function() {
                 document.body.style.filter = 'none';
-            });
+                document.body.style.opacity = '1';
+            }, 150);
+        });
 
-            // PROTECCIÓN 4: Bloquear teclas
-            document.addEventListener('keydown', function(e) {
-                if ((e.key === 'PrintScreen') || (e.keyCode === 44) || (e.keyCode === 42 && e.shiftKey)) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    alert('⛔ Capturas de pantalla BLOQUEADAS');
-                    return false;
-                }
-            }, true);
+        // PROTECCIÓN 2: Dañar captura al cambiar visibilidad
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // Pantalla oculta - cualquier captura saldrá dañada
+                document.body.style.filter = 'blur(100px)';
+                document.body.style.opacity = '0.05';
+            } else {
+                // Restaurar después de 150ms
+                setTimeout(function() {
+                    document.body.style.filter = 'none';
+                    document.body.style.opacity = '1';
+                }, 150);
+            }
+        });
 
-            // PROTECCIÓN 5: Deshaabilitar menú contextual
-            document.addEventListener('contextmenu', function(e) {
+        // PROTECCIÓN 3: Dañar captura al perder foco del documento
+        document.addEventListener('blur', function() {
+            document.body.style.filter = 'blur(100px)';
+            document.body.style.opacity = '0.05';
+        }, true);
+
+        document.addEventListener('focus', function() {
+            setTimeout(function() {
+                document.body.style.filter = 'none';
+                document.body.style.opacity = '1';
+            }, 150);
+        }, true);
+
+        // PROTECCIÓN 4: Bloquear tecla PrintScreen (no dialogs)
+        document.addEventListener('keydown', function(e) {
+            if ((e.key === 'PrintScreen') || (e.keyCode === 44) || (e.keyCode === 42 && e.shiftKey)) {
                 e.preventDefault();
                 e.stopPropagation();
+                // Inmediatamente dañar la pantalla
+                document.body.style.filter = 'blur(100px)';
+                document.body.style.opacity = '0.05';
+                setTimeout(function() {
+                    document.body.style.filter = 'none';
+                    document.body.style.opacity = '1';
+                }, 500);
                 return false;
-            }, true);
+            }
+        }, true);
 
-            // PROTECCIÓN 6: Prevenir selección de texto
-            document.addEventListener('selectstart', function(e) {
-                e.preventDefault();
-                return false;
-            });
+        // PROTECCIÓN 5: Deshabilitar menú contextual (evita capturas desde menú)
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }, true);
 
-            // PROTECCIÓN 7: Detectar pérdida de foco de la página
-            let lastFocusTime = Date.now();
-            setInterval(function() {
-                if (document.hasFocus()) {
-                    lastFocusTime = Date.now();
-                } else {
-                    const timeSinceFocus = Date.now() - lastFocusTime;
-                    if (timeSinceFocus > 500) {
-                        // Página sin foco por más de 500ms - posible captura
-                        document.body.style.opacity = '0.3';
-                    }
-                }
-            }, 100);
+        // PROTECCIÓN 6: Prevenir selección de texto
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
 
-            // PROTECCIÓN 8: Ocultar al cambiar a otra app
-            window.addEventListener('pagehide', function() {
-                document.body.style.display = 'none';
-            });
+        // PROTECCIÓN 7: Monitoreo continuo de foco
+        // Si la página no tiene foco, mantener dañada
+        setInterval(function() {
+            if (!document.hasFocus()) {
+                document.body.style.filter = 'blur(100px)';
+                document.body.style.opacity = '0.05';
+            }
+        }, 100);
 
-            window.addEventListener('pageshow', function() {
-                document.body.style.display = 'block';
-            });
+        // PROTECCIÓN 8: Ocultar al cambiar a otra app
+        window.addEventListener('pagehide', function() {
+            document.body.style.filter = 'blur(100px)';
+            document.body.style.opacity = '0';
+        });
 
-            console.warn('✓ 8 capas de protección anti-captura activadas');
-        }
+        window.addEventListener('pageshow', function() {
+            setTimeout(function() {
+                document.body.style.filter = 'none';
+                document.body.style.opacity = '1';
+            }, 150);
+        });
+
+        console.warn('✓ 8 capas de protección anti-captura activadas - Capturas saldrán dañadas/opacas');
     }
 
     // Crear marcas al cargar la página
