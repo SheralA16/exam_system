@@ -171,7 +171,7 @@
                 <div class="message-content">
                     <div class="message-header">
                         <span class="bot-name">SipanBot</span>
-                        <span class="message-time">08:40 pm, Today</span>
+                        <span class="message-time" id="chatMessageTime">08:40 pm, Today</span>
                     </div>
                     <div class="message-text">
                         ¡Hola, hola! Mi nombre es SipanBot 🤖 y seré tu guía personal en tus actividades académicas 🎓.<br><br>
@@ -1026,8 +1026,8 @@
         position: fixed;
         bottom: 30px;
         right: 30px;
-        width: 70px;
-        height: 70px;
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
         border: 4px solid #8b5cf6;
         background: white;
@@ -1219,12 +1219,12 @@
         .chatbot-window {
             width: 90%;
             right: 5%;
-            bottom: 110px;
+            bottom: 100px;
         }
 
         .chatbot-btn {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             bottom: 20px;
             right: 20px;
         }
@@ -1387,9 +1387,25 @@
         const chatWindow = document.getElementById('chatbotWindow');
         if (chatWindow.style.display === 'none' || chatWindow.style.display === '') {
             chatWindow.style.display = 'flex';
+            updateChatTime();
         } else {
             chatWindow.style.display = 'none';
         }
+    }
+
+    // Actualizar hora del mensaje
+    function updateChatTime() {
+        const now = new Date();
+        let hours = now.getHours();
+        const minutes = now.getMinutes();
+        const ampm = hours >= 12 ? 'pm' : 'am';
+
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 se convierte en 12
+        const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+
+        const timeString = hours + ':' + minutesStr + ' ' + ampm + ', Today';
+        document.getElementById('chatMessageTime').textContent = timeString;
     }
 
     // Refresh Chat (simulación)
