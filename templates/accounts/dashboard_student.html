@@ -97,18 +97,35 @@
         <div class="courses-grid" id="coursesContainer">
             {% for enrollment in enrollments %}
             <div class="course-card" data-name="{{ enrollment.course.name|lower }}">
-                {% if enrollment.course.image %}
-                <img src="{{ enrollment.course.image.url }}" alt="{{ enrollment.course.name }}" class="course-image">
-                {% else %}
-                <div class="course-image-placeholder">
-                    <span>{{ enrollment.course.name|slice:":1"|upper }}</span>
+                <div class="course-image-container">
+                    {% if enrollment.course.image %}
+                    <img src="{{ enrollment.course.image.url }}" alt="{{ enrollment.course.name }}" class="course-image">
+                    {% else %}
+                    <div class="course-image-placeholder">
+                        <span>{{ enrollment.course.name|slice:":1"|upper }}</span>
+                    </div>
+                    {% endif %}
+                    <button class="btn-favorite" onclick="toggleFavorite(event, this)" title="Marcar como favorito">
+                        <svg class="star-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                    </button>
                 </div>
-                {% endif %}
                 <div class="course-content">
                     <h3 class="course-name">{{ enrollment.course.name }}</h3>
                     <p class="course-description">{{ enrollment.course.description|truncatewords:15|default:"Sin descripción" }}</p>
                     <a href="{% url 'exams:student_course_exams' enrollment.course.id %}" class="btn-card">Ir al
                         Curso</a>
+                    <button class="btn-options" onclick="toggleOptionsMenu(event, this)" title="Opciones">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="5" r="2"/>
+                            <circle cx="12" cy="12" r="2"/>
+                            <circle cx="12" cy="19" r="2"/>
+                        </svg>
+                    </button>
+                    <div class="options-menu" style="display: none;">
+                        <div class="option-item">Eliminar de la vista</div>
+                    </div>
                 </div>
             </div>
             {% empty %}
@@ -576,6 +593,12 @@
         padding: 0;
     }
 
+    .courses-grid.list-view .course-image-container {
+        width: 250px;
+        height: 150px;
+        flex-shrink: 0;
+    }
+
     .courses-grid.list-view .course-image,
     .courses-grid.list-view .course-image-placeholder {
         width: 250px;
@@ -633,11 +656,18 @@
         overflow: hidden;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         transition: transform 0.3s, box-shadow 0.3s;
+        position: relative;
     }
 
     .course-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .course-image-container {
+        position: relative;
+        width: 100%;
+        height: 200px;
     }
 
     .course-image {
@@ -661,8 +691,108 @@
         font-weight: bold;
     }
 
+    /* Botón de Favorito */
+    .btn-favorite {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s;
+        z-index: 10;
+    }
+
+    .btn-favorite:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-favorite .star-icon {
+        color: #95a5a6;
+        transition: all 0.3s;
+    }
+
+    .btn-favorite.active .star-icon {
+        fill: #f39c12;
+        color: #f39c12;
+    }
+
+    .btn-favorite:hover .star-icon {
+        color: #f39c12;
+    }
+
     .course-content {
         padding: 20px;
+        position: relative;
+    }
+
+    /* Botón de Opciones (Tres puntos) */
+    .btn-options {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        color: #95a5a6;
+    }
+
+    .btn-options:hover {
+        background: #f0f0f0;
+        color: #2c3e50;
+    }
+
+    /* Menú de opciones */
+    .options-menu {
+        position: absolute;
+        bottom: 55px;
+        right: 20px;
+        background: white;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        min-width: 180px;
+        z-index: 100;
+        overflow: hidden;
+        animation: optionsMenuFadeIn 0.2s ease;
+    }
+
+    @keyframes optionsMenuFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .option-item {
+        padding: 12px 16px;
+        cursor: pointer;
+        transition: background 0.2s;
+        color: #2c3e50;
+        font-size: 14px;
+    }
+
+    .option-item:hover {
+        background: #f8f9fa;
+        color: #e74c3c;
     }
 
     .course-content h3 {
@@ -788,10 +918,27 @@
             font-size: 48px;
         }
 
+        .courses-grid.list-view .course-image-container {
+            width: 150px;
+            height: 120px;
+        }
+
         .courses-grid.list-view .course-image,
         .courses-grid.list-view .course-image-placeholder {
             width: 150px;
             height: 120px;
+        }
+
+        .btn-favorite {
+            width: 32px;
+            height: 32px;
+            top: 8px;
+            right: 8px;
+        }
+
+        .btn-favorite .star-icon {
+            width: 16px;
+            height: 16px;
         }
     }
 
@@ -829,6 +976,30 @@
 <script>
     let currentView = 'list'; // Por defecto en vista lista
 
+    // Toggle Favorito
+    function toggleFavorite(event, button) {
+        event.preventDefault();
+        event.stopPropagation();
+        button.classList.toggle('active');
+    }
+
+    // Toggle Menú de Opciones
+    function toggleOptionsMenu(event, button) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Cerrar todos los menús abiertos
+        document.querySelectorAll('.options-menu').forEach(menu => {
+            if (menu !== button.nextElementSibling) {
+                menu.style.display = 'none';
+            }
+        });
+
+        // Toggle el menú actual
+        const menu = button.nextElementSibling;
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    }
+
     // Cerrar dropdown al hacer click fuera
     document.addEventListener('click', function (event) {
         const viewDropdown = document.getElementById('viewDropdown');
@@ -842,6 +1013,13 @@
 
         if (userAvatarBtn && userDropdown && !userAvatarBtn.contains(event.target) && !userDropdown.contains(event.target)) {
             userDropdown.style.display = 'none';
+        }
+
+        // Cerrar menús de opciones si se hace click fuera
+        if (!event.target.closest('.btn-options') && !event.target.closest('.options-menu')) {
+            document.querySelectorAll('.options-menu').forEach(menu => {
+                menu.style.display = 'none';
+            });
         }
     });
 
