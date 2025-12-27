@@ -136,6 +136,60 @@
             {% endfor %}
         </div>
     </div>
+
+    <!-- Chat Bot Button -->
+    <button class="chatbot-btn" onclick="toggleChatbot()" title="Abrir SipanBot">
+        <img src="{% static 'images/f-64399c33-ce60-5ca3-aa89-b2d37c0964cf.png' %}" alt="SipanBot">
+    </button>
+
+    <!-- Chat Window -->
+    <div class="chatbot-window" id="chatbotWindow" style="display: none;">
+        <div class="chatbot-header">
+            <button class="chatbot-back-btn" onclick="toggleChatbot()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <h3 class="chatbot-title">SipanBot</h3>
+            <button class="chatbot-refresh-btn" onclick="refreshChat()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+            </button>
+            <button class="chatbot-close-btn" onclick="toggleChatbot()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="chatbot-messages">
+            <div class="chatbot-message bot-message">
+                <img src="{% static 'images/f-64399c33-ce60-5ca3-aa89-b2d37c0964cf.png' %}" alt="Bot" class="bot-avatar">
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="bot-name">SipanBot</span>
+                        <span class="message-time">08:40 pm, Today</span>
+                    </div>
+                    <div class="message-text">
+                        ¡Hola, hola! Mi nombre es SipanBot 🤖 y seré tu guía personal en tus actividades académicas 🎓.<br><br>
+                        Para iniciar sesión en tu aula virtual escribe la palabra <strong>iniciar</strong>.<br><br>
+                        Y si tienes alguna pregunta 💭😊, ¡dímela directamente! 😊
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="chatbot-input-container">
+            <input type="text" class="chatbot-input" placeholder="Type a message" />
+            <button class="chatbot-send-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -726,10 +780,6 @@
         filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
     }
 
-    .btn-favorite:hover .star-icon {
-        transform: rotate(-15deg);
-    }
-
     .course-content {
         padding: 20px;
         position: relative;
@@ -970,6 +1020,215 @@
             font-size: 18px;
         }
     }
+
+    /* Chat Bot Button */
+    .chatbot-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        border: 4px solid #8b5cf6;
+        background: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        transition: all 0.3s;
+        z-index: 1000;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .chatbot-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(139, 92, 246, 0.5);
+    }
+
+    .chatbot-btn img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Chat Window */
+    .chatbot-window {
+        position: fixed;
+        bottom: 120px;
+        right: 30px;
+        width: 400px;
+        max-height: 600px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column;
+        z-index: 999;
+        animation: chatWindowFadeIn 0.3s ease;
+    }
+
+    @keyframes chatWindowFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Chat Header */
+    .chatbot-header {
+        background: linear-gradient(135deg, #7ed321 0%, #6bc21b 100%);
+        padding: 15px 20px;
+        border-radius: 12px 12px 0 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .chatbot-back-btn,
+    .chatbot-refresh-btn,
+    .chatbot-close-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .chatbot-back-btn:hover,
+    .chatbot-refresh-btn:hover,
+    .chatbot-close-btn:hover {
+        transform: scale(1.2);
+    }
+
+    .chatbot-title {
+        flex: 1;
+        margin: 0;
+        color: white;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    /* Chat Messages */
+    .chatbot-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        max-height: 400px;
+        background: #f5f5f5;
+    }
+
+    .chatbot-message {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .bot-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        border: 2px solid #8b5cf6;
+    }
+
+    .message-content {
+        flex: 1;
+    }
+
+    .message-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .bot-name {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 14px;
+    }
+
+    .message-time {
+        font-size: 12px;
+        color: #95a5a6;
+    }
+
+    .message-text {
+        background: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        color: #2c3e50;
+        font-size: 14px;
+        line-height: 1.5;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Chat Input */
+    .chatbot-input-container {
+        display: flex;
+        gap: 10px;
+        padding: 15px 20px;
+        background: white;
+        border-radius: 0 0 12px 12px;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .chatbot-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+
+    .chatbot-input:focus {
+        outline: none;
+        border-color: #8b5cf6;
+    }
+
+    .chatbot-send-btn {
+        width: 45px;
+        height: 45px;
+        border-radius: 8px;
+        background: #8b5cf6;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .chatbot-send-btn:hover {
+        background: #7c3aed;
+        transform: scale(1.05);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .chatbot-window {
+            width: 90%;
+            right: 5%;
+            bottom: 110px;
+        }
+
+        .chatbot-btn {
+            width: 60px;
+            height: 60px;
+            bottom: 20px;
+            right: 20px;
+        }
+    }
 </style>
 
 <script>
@@ -1122,5 +1381,21 @@
     window.addEventListener('DOMContentLoaded', function () {
         setView('list');
     });
+
+    // Toggle Chatbot
+    function toggleChatbot() {
+        const chatWindow = document.getElementById('chatbotWindow');
+        if (chatWindow.style.display === 'none' || chatWindow.style.display === '') {
+            chatWindow.style.display = 'flex';
+        } else {
+            chatWindow.style.display = 'none';
+        }
+    }
+
+    // Refresh Chat (simulación)
+    function refreshChat() {
+        console.log('Chat refreshed');
+        // Aquí se podría agregar funcionalidad para refrescar el chat
+    }
 </script>
 {% endblock %}
